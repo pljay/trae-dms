@@ -1,0 +1,27 @@
+body {
+  transition: background-color .25s, color .25s;
+  color: var(--color-text);
+  background-color: var(--color-body);
+  color-scheme: var(--color-scheme);
+}
+
+
+/* 非登录页面添加底部间距 */
+.page-container:not(.login-page) {
+  padding-top: 60px; /* 为顶部导航预留空间 */
+  padding-bottom: 60px; /* 为底部导航预留空间 */
+}
+
+/* 登录页面移除底部间距 */
+.page-container.login-page {
+  padding-bottom: 0;
+  height: 100vh !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+
+
+
+
+

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">trae-dms</string>
+    <string name="title_activity_main">trae-dms</string>
+    <string name="package_name">com.trae.dms</string>
+    <string name="custom_url_scheme">com.trae.dms</string>
+</resources>
