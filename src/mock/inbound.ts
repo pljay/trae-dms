@@ -20,7 +20,7 @@ const generateBatchNumber = () => {
 }
 
 // 模拟入库批次数据
-const mockInboundBatches = Array.from({ length: 20 }, (_, i) => {
+const mockInboundBatches = Array.from({ length: 20 }, () => {
   // 随机生成状态
   const status = faker.helpers.arrayElement(Object.values(InboundStatus))
 

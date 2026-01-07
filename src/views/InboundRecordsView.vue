@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+  import { ref, onMounted, onUnmounted, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { usePackageStore } from '@/stores/package'
   import { Package, PackageStatus } from '@/types'
@@ -275,19 +275,7 @@
         return t('common.error')
     }
   }
-
-  // 格式化日期
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return ''
-    return new Date(date).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
+  
   // 组件挂载时设置
   onMounted(async () => {
     await packageStore.initData()

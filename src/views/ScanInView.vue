@@ -90,19 +90,14 @@
 
 <script setup lang="ts">
   import { ref } from 'vue'
-  import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { Snackbar } from '@varlet/ui'
-  import { useAuthStore } from '@/stores/auth'
   import { usePackageStore } from '@/stores/package'
   import { Package } from '@/types'
   import BarcodeScanner from '@/components/BarcodeScanner.vue'
   import TopBar from '@/components/TopBar.vue'
 
   const { t } = useI18n()
-
-  const router = useRouter()
-  const authStore = useAuthStore()
   const packageStore = usePackageStore()
   const scanResult = ref<Package | null>(null)
   const scanStatus = ref<'success' | 'error' | 'intercept' | null>(null)

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { OutboundBatch, OutboundStatus, PaginationResponse } from '../types'
+import { OutboundBatch, OutboundStatus} from '../types'
 import { 
   getAllOutboundBatches, 
   createOutboundBatch, 

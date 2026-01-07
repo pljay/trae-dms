@@ -47,11 +47,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import {  reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Snackbar } from '@varlet/ui'
-import { useAuthStore } from '@/stores/auth'
 import { useOutboundStore } from '@/stores/outbound'
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
 import { useScan } from '@/composables/useScan'
@@ -60,7 +59,6 @@ const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
 const outboundStore = useOutboundStore()
 const { scanCount: outboundCount, handleScan, handleError, completeOperation } = useScan()
 

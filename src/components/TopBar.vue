@@ -115,28 +115,28 @@
   };
 
   // 处理用户信息
-  const handleProfile = () => {
-    console.log('用户信息');
-    showUserPopup.value = false;
-    // 这里可以添加导航到用户信息页面的逻辑
-    // router.push('/profile');
-  };
+  // const handleProfile = () => {
+  //   console.log('用户信息');
+  //   showUserPopup.value = false;
+  //   // 这里可以添加导航到用户信息页面的逻辑
+  //   // router.push('/profile');
+  // };
 
-  // 处理设置
-  const handleSettings = () => {
-    console.log('设置');
-    showUserPopup.value = false;
-    // 这里可以添加导航到设置页面的逻辑
-    // router.push('/settings');
-  };
+  // // 处理设置
+  // const handleSettings = () => {
+  //   console.log('设置');
+  //   showUserPopup.value = false;
+  //   // 这里可以添加导航到设置页面的逻辑
+  //   // router.push('/settings');
+  // };
 
-  // 处理帮助
-  const handleHelp = () => {
-    console.log('帮助');
-    showUserPopup.value = false;
-    // 这里可以添加导航到帮助页面的逻辑
-    // router.push('/help');
-  };
+  // // 处理帮助
+  // const handleHelp = () => {
+  //   console.log('帮助');
+  //   showUserPopup.value = false;
+  //   // 这里可以添加导航到帮助页面的逻辑
+  //   // router.push('/help');
+  // };
 
   // 处理登出
   const handleLogout = () => {

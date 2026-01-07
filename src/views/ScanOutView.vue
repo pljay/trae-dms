@@ -126,20 +126,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Snackbar } from '@varlet/ui'
-import { useAuthStore } from '@/stores/auth'
-import { usePackageStore } from '@/stores/package'
 import { useOutboundStore } from '@/stores/outbound'
 
 const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
-const packageStore = usePackageStore()
 const outboundStore = useOutboundStore()
 const formRef = ref()
 
@@ -149,11 +145,6 @@ const outboundForm = reactive({
   channel: '',
 })
 
-// 表单验证规则
-const rules = {
-  batchNumber: [{ required: true, message: () => t('scanOut.step1.serialNumber'), trigger: 'blur' }],
-  channel: [{ required: true, message: () => t('scanOut.step2.selectChannel'), trigger: 'change' }],
-}
 
 // 步骤控制
 const activeStep = ref(0)
@@ -162,12 +153,12 @@ const activeStep = ref(0)
 const showBatchForm = ref(false)
 
 // 响应式设计变量
-const isMobile = ref(false);
+// const isMobile = ref(false);
 
 // 初始化响应式状态
-const checkIsMobile = () => {
-  isMobile.value = window.innerWidth < 768;
-};
+// const checkIsMobile = () => {
+//   isMobile.value = window.innerWidth < 768;
+// };
 
 // 获取出库中记录
 const inProgressBatches = computed(() => outboundStore.inProgressBatches);
@@ -234,7 +225,7 @@ const nextStep = async () => {
     }
     // 直接创建新批次，因为第一步已经确保批次号不存�?    
     try {
-      let batch = await outboundStore.createBatch(outboundForm.channel, outboundForm.batchNumber)
+      await outboundStore.createBatch(outboundForm.channel, outboundForm.batchNumber)
       Snackbar({
         type: 'success',
         content: t('scanOut.batchCreated'),
@@ -269,22 +260,22 @@ const prevStep = () => {
 }
 
 // 创建新批�?
-const createNewBatch = () => {
-  // 生成默认批次�?  
-  const defaultBatchNumber = 'OB' + new Date().getTime().toString()
-  // 更新表单中的批次�?  
-  outboundForm.batchNumber = defaultBatchNumber
-  // 重置表单和步�?  
-  outboundForm.channel = ''
-  activeStep.value = 0
-  // 显示创建批次弹窗
-  showBatchForm.value = true
-  Snackbar({
-    type: 'info',
-    content: t('scanOut.selectChannelPrompt'),
-    duration: 2000
-  })
-}
+// const createNewBatch = () => {
+//   // 生成默认批次�?  
+//   const defaultBatchNumber = 'OB' + new Date().getTime().toString()
+//   // 更新表单中的批次�?  
+//   outboundForm.batchNumber = defaultBatchNumber
+//   // 重置表单和步�?  
+//   outboundForm.channel = ''
+//   activeStep.value = 0
+//   // 显示创建批次弹窗
+//   showBatchForm.value = true
+//   Snackbar({
+//     type: 'info',
+//     content: t('scanOut.selectChannelPrompt'),
+//     duration: 2000
+//   })
+// }
 
 // 重置表单
 const resetForm = () => {
