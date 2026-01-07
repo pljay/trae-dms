@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { Package, PackageStatus, PaginationResponse } from '../types'
+import { Package, PackageStatus} from '../types'
 import { 
   getAllPackages, 
   scanInPackage, 
