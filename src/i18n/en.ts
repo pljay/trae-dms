@@ -1,6 +1,6 @@
 export default {
   login: {
-    title: 'Warehouse Management System',
+    title: 'DMS',
     subtitle: 'Welcome to Warehouse Management System',
     username: 'Username',
     password: 'Password',
@@ -11,7 +11,7 @@ export default {
     loginFailed: 'Login failed, please check your credentials'
   },
   home: {
-    title: 'Warehouse Management System',
+    title: 'DMS',
     modules: {
       scanIn: 'Scan In',
       scanInDesc: 'Scan package barcode for incoming operations',
@@ -43,13 +43,18 @@ export default {
       scanSuccess: 'Scan Successful',
       scanFailed: 'Scan Failed',
       intercepted: 'Intercepted',
+      interceptMessage: 'Intercept Reason',
       trackNo: 'Tracking Number',
       channel: 'Channel',
       country: 'Country',
       confirm: 'Confirm',
       cancel: 'Cancel',
       cameraInitFailed: 'Camera initialization failed',
-      cameraInUse: 'Camera is in use'
+      cameraInUse: 'Camera is in use',
+      cameraStarted: 'Camera started',
+      cameraPermissionDenied: 'Camera permission denied',
+      cameraNotFound: 'Camera not found',
+      cameraNotSupported: 'Camera not supported'
   },
   packageRecords: {
     title: 'Package Records',
@@ -140,8 +145,10 @@ export default {
     search: 'Search',
     searchPlaceholder: 'Please enter tracking number, channel or country to search',
     welcome: 'Welcome',
-    chinese: 'CN',
-    english: 'EN',
+    chinese: 'Chinese',
+    english: 'English',
+    french: 'French',
+    german: 'German',
     lightTheme: 'Light Mode',
     darkTheme: 'Dark Mode',
     userProfile: 'User Profile',
@@ -174,6 +181,18 @@ export default {
     completed: 'Completed',
     notInbound: 'Not Inbound',
     unknown: 'Unknown'
+  },
+  api: {
+    error: {
+      badRequest: 'Bad request',
+      unauthorized: 'Unauthorized access',
+      forbidden: 'Forbidden',
+      notFound: 'Resource not found',
+      serverError: 'Internal server error',
+      networkError: 'Network connection error',
+      requestError: 'Request configuration error',
+      unknownError: 'Unknown error'
+    }
   },
   inboundBatches: {
     title: 'Inbound Batches',

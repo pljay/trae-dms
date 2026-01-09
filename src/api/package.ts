@@ -43,7 +43,9 @@ export const updatePackage = async (
 
 // 扫描入库
 export const scanInPackage = async (trackNo: string): Promise<Package> => {
-  return await apiClient.post(`/packages/${trackNo}/scan-in`)
+  return await apiClient.post(`/scan-in`, {
+    trackNo
+  })
 }
 
 // 扫描出库

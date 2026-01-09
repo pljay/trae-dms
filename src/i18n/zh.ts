@@ -1,6 +1,6 @@
 export default {
   login: {
-    title: '仓库管理系统',
+    title: '仓库',
     subtitle: '欢迎使用仓库管理系统',
     username: '用户名',
     password: '密码',
@@ -11,7 +11,7 @@ export default {
     loginFailed: '登录失败，请检查账号密码'
   },
   home: {
-    title: '仓库管理系统',
+    title: '仓库',
     modules: {
       scanIn: '扫描入库',
       scanInDesc: '扫描包裹单号进行入库操作',
@@ -43,6 +43,7 @@ export default {
       scanSuccess: '扫描成功',
       scanFailed: '扫描失败',
       intercepted: '已拦截',
+      interceptMessage: '拦截原因',
       trackNo: '单号',
       channel: '渠道',
       country: '国家',
@@ -50,6 +51,10 @@ export default {
       cancel: '取消',
       cameraInitFailed: '摄像头初始化失败',
       cameraInUse: '摄像头正在使用中',
+      cameraStarted: '摄像头已启动',
+      cameraPermissionDenied: '摄像头权限被拒绝',
+      cameraNotFound: '未找到摄像头设备',
+      cameraNotSupported: '浏览器不支持摄像头功能',
   },
   packageRecords: {
     title: '包裹记录',
@@ -142,6 +147,8 @@ export default {
     welcome: '欢迎',
     chinese: '中文',
     english: 'English',
+    french: 'Français',
+    german: 'Deutsch',
     lightTheme: '浅色模式',
     darkTheme: '深色模式',
     userProfile: '用户信息',
@@ -174,6 +181,18 @@ export default {
     completed: '已完成',
     notInbound: '待入库',
     unknown: '未知'
+  },
+  api: {
+    error: {
+      badRequest: '请求参数错误',
+      unauthorized: '未授权访问',
+      forbidden: '禁止访问',
+      notFound: '请求资源不存在',
+      serverError: '服务器内部错误',
+      networkError: '网络连接错误',
+      requestError: '请求配置错误',
+      unknownError: '未知错误'
+    }
   },
   inboundBatches: {
     title: '入库批次',

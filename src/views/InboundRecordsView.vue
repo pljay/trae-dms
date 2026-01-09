@@ -5,7 +5,7 @@
     <div class="search-filter-section">
       <!-- 搜索框 -->
       <div class="search-box">
-        <var-input v-model="searchKeyword" :placeholder="t('common.searchPlaceholder')" clearable prefix="search"
+        <var-input v-model="searchKeyword" :placeholder="t('common.searchPlaceholder')" clearable prepend-icon="search"
           @clear="handleSearch" @keyup.enter="handleSearch">
           <template #append-icon>
             <var-button type="primary" @click="handleSearch">
@@ -29,13 +29,13 @@
         <var-table>
           <thead style="position: sticky; top: 0">
             <tr>
-              <td v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</td>
+              <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in getFilteredPackages('all')" :key="row.id">
               <td>{{ row.trackNo }}</td>
-              <td><var-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</var-tag></td>
+              <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
               <td>{{ row.country }}</td>
               <!-- <td>{{ row.weight }} kg</td>
@@ -55,13 +55,13 @@
         <var-table>
           <thead style="position: sticky; top: 0">
             <tr>
-              <td v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</td>
+              <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in getFilteredPackages('in_stock')" :key="row.id">
               <td>{{ row.trackNo }}</td>
-              <td><var-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</var-tag></td>
+              <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
               <td>{{ row.country }}</td>
               <!-- <td>{{ row.weight }} kg</td>
@@ -81,13 +81,13 @@
         <var-table>
           <thead style="position: sticky; top: 0">
             <tr>
-              <td v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</td>
+              <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in getFilteredPackages('pending')" :key="row.id">
               <td>{{ row.trackNo }}</td>
-              <td><var-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</var-tag></td>
+              <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
               <td>{{ row.country }}</td>
               <!-- <td>{{ row.weight }} kg</td>
@@ -107,13 +107,13 @@
         <var-table>
           <thead style="position: sticky; top: 0">
             <tr>
-              <td v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</td>
+              <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in getFilteredPackages('out_of_stock')" :key="row.id">
               <td>{{ row.trackNo }}</td>
-              <td><var-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</var-tag></td>
+              <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
               <td>{{ row.country }}</td>
               <!-- <td>{{ row.weight }} kg</td>

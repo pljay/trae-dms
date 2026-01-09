@@ -7,6 +7,7 @@ import {
   getInboundBatchPackages
 } from '../api/inbound'
 import { Snackbar } from '@varlet/ui'
+import i18n from '@/i18n'
 
 export const useInboundBatchStore = defineStore('inboundBatch', {
   state: () => ({
@@ -34,7 +35,7 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
         this.batches = batches
       } catch (error) {
         console.error('Failed to fetch inbound batches:', error)
-        Snackbar({ type: 'error', content: '获取入库批次数据失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
       } finally {
         this.loading = false
       }
@@ -49,7 +50,7 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
         this.currentBatch = batch
       } catch (error) {
         console.error('Failed to fetch inbound batch:', error)
-        Snackbar({ type: 'error', content: '获取入库批次详情失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
       } finally {
         this.loading = false
       }
@@ -63,7 +64,7 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
         this.batchChannels = channels
       } catch (error) {
         console.error('Failed to fetch batch channels:', error)
-        Snackbar({ type: 'error', content: '获取批次渠道数据失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
       } finally {
         this.loading = false
       }
@@ -79,7 +80,7 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
         this.batchPackages = packages
       } catch (error) {
         console.error('Failed to fetch batch packages:', error)
-        Snackbar({ type: 'error', content: '获取批次包裹记录失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
       }
     },
     

@@ -1,6 +1,6 @@
 <template>
   <div class="inbound-batches-container">
-    <TopBar title="入库批次" />
+    <TopBar :title="t('inboundBatches.title')" />
     <div class="content">
       <!-- 搜索框 -->
       <div class="search-section">
@@ -15,8 +15,8 @@
       <!-- 状态筛选 -->
       <var-tabs color="var(--color-primary)" active-color="var(--color-on-primary)" inactive-color="var(--color-on-info)"
       v-model:active="activeTab" :safe-area="true">
-        <var-tab name="pending">待入库</var-tab>
-        <var-tab name="in_progress">入库中</var-tab>
+        <var-tab name="pending">{{ $t('inboundBatches.pendingBatches') }}</var-tab>
+        <var-tab name="in_progress">{{ $t('inboundBatches.inProgressBatches') }}</var-tab>
       </var-tabs>
       <var-tabs-items v-model:active="activeTab" :can-swipe="false">
         <var-tab-item name="pending">
@@ -26,18 +26,18 @@
               <div class="cell-content">
                 <div class="batch-title">
                   <div class="batch-number">{{ batch.batchNumber }}</div>
-                  <var-button text outline type="warning" size="mini">待入库</var-button>
+                  <var-button text outline type="warning" size="mini">{{ $t('status.notInbound') }}</var-button>
                 </div>
                 <div class="batch-info">
                   <div class="batch-progress">
                     <div class="progress-text">
-                      入库进度: {{ batch.inboundQuantity }}/{{ batch.expectedQuantity }}
+                      {{ $t('inboundBatches.inboundProgress') }}: {{ batch.inboundQuantity }}/{{ batch.expectedQuantity }}
                     </div>
                     <var-progress :percentage="getInboundProgress(batch)" :color="getProgressColor(batch)" :height="6"
                       class="progress-bar" />
                   </div>
                   <div class="batch-date">
-                    创建时间: {{ formatDate(batch.createdAt) }}
+                    {{ $t('inboundBatches.labels.createdAt') }} {{ formatDate(batch.createdAt) }}
                   </div>
                 </div>
               </div>
@@ -51,7 +51,7 @@
               <div class="cell-content">
                 <div class="batch-title">
                   <div class="batch-number">{{ batch.batchNumber }}</div>
-                  <var-button text outline type="primary" size="mini">入库中</var-button>
+                  <var-button text outline type="primary" size="mini">{{ $t('status.inProgress') }}</var-button>
                 </div>
                 <div class="batch-info">
                   <div class="batch-progress">
@@ -62,7 +62,7 @@
                       class="progress-bar" />
                   </div>
                   <div class="batch-date">
-                    创建时间: {{ formatDate(batch.createdAt) }}
+                    创建时间: {{ batch.createdAt}}
                   </div>
                 </div>
               </div>
@@ -71,8 +71,6 @@
         </var-tab-item>
       </var-tabs-items>
     </div>
-
-    <BottomNav />
   </div>
 </template>
 

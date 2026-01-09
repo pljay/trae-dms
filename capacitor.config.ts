@@ -5,8 +5,12 @@ const config: CapacitorConfig = {
   appName: 'trae-dms',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
-  }
+    androidScheme: 'https',
+    // 启用调试模式，方便查看 JavaScript 错误
+    cleartext: true
+  },
+  // 启用调试日志
+  loggingBehavior: 'debug'
 };
 
 export default config;

@@ -3,6 +3,7 @@ body {
   color: var(--color-text);
   background-color: var(--color-body);
   color-scheme: var(--color-scheme);
+  margin: 0 !important;
 }
 
 

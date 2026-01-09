@@ -1,6 +1,5 @@
 import { MockMethod } from 'vite-plugin-mock'
 import { faker } from '@faker-js/faker'
-import console from 'node:console'
 
 // 包裹状态枚举
 const PackageStatus = {
@@ -268,6 +267,54 @@ export default [
       pkg.updatedAt = new Date().toISOString()
       
       return responseHandler(pkg, '扫描出库成功')
+    }
+  },
+  
+  // 扫描入库（新接口，直接使用 /api/scan-in）
+  {
+    url: '/api/scan-in',
+    method: 'post',
+    response: (config: any) => {
+      console.log('扫描入库请求（新接口）:', config)
+      const { body = {} } = config
+      const { trackNo } = body
+      
+      if (!trackNo) {
+        return responseHandler(null, '缺少必填参数', 400)
+      }
+      
+      console.log('扫描入库（新接口）trackNo:', trackNo)
+      let pkg = mockPackages.find(item => item.trackNo === trackNo)
+      const now = new Date().toISOString()
+      
+      if (pkg) {
+        pkg.status = PackageStatus.IN_STOCK
+        pkg.scanInAt = now
+        pkg.updatedAt = now
+      } else {
+        // 创建新包裹，使用faker生成更真实的数据
+        const newPackage = {
+          id: mockPackages.length + 1,
+          trackNo: trackNo,
+          status: PackageStatus.IN_STOCK,
+          scanInAt: now,
+          scanOutAt: null,
+          batchSerialNumber: null,
+          weight: faker.number.float({ min: 0.5, max: 20.5, fractionDigits: 2 }),
+          length: faker.number.float({ min: 10, max: 60, fractionDigits: 1 }),
+          width: faker.number.float({ min: 5, max: 45, fractionDigits: 1 }),
+          height: faker.number.float({ min: 3, max: 33, fractionDigits: 1 }),
+          channel: faker.helpers.arrayElement(channels),
+          country: faker.helpers.arrayElement(countries),
+          createdAt: now,
+          updatedAt: now
+        }
+        
+        mockPackages.unshift(newPackage)
+        pkg = newPackage
+      }
+      
+      return responseHandler(pkg, '扫描入库成功')
     }
   },
   

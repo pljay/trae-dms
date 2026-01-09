@@ -8,6 +8,7 @@ import {
   updateOutboundBatchChannel
 } from '../api/outbound'
 import { Snackbar } from '@varlet/ui'
+import i18n from '@/i18n'
 
 export const useOutboundStore = defineStore('outbound', {
   state: () => ({
@@ -34,7 +35,7 @@ export const useOutboundStore = defineStore('outbound', {
         this.total = response.total
       } catch (error) {
         console.error('Failed to fetch outbound batches:', error)
-        Snackbar({ type: 'error', content: '获取出库批次失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
       } finally {
         this.loading = false
       }
@@ -46,11 +47,11 @@ export const useOutboundStore = defineStore('outbound', {
         const newBatch = await createOutboundBatch(channel, serialNumber)
         this.batches.unshift(newBatch)
         this.total++
-        Snackbar({ type: 'success', content: '创建出库批次成功' })
+        Snackbar({ type: 'success', content: i18n.global.t('common.success') })
         return newBatch
       } catch (error) {
         console.error('Failed to create outbound batch:', error)
-        Snackbar({ type: 'error', content: '创建出库批次失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('common.error') })
         return null
       }
     },
@@ -66,7 +67,7 @@ export const useOutboundStore = defineStore('outbound', {
         return true
       } catch (error) {
         console.error('Failed to update batch quantity:', error)
-        Snackbar({ type: 'error', content: '更新批次数量失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('common.error') })
         return false
       }
     },
@@ -79,11 +80,11 @@ export const useOutboundStore = defineStore('outbound', {
         if (batchIndex !== -1) {
           this.batches[batchIndex] = updatedBatch
         }
-        Snackbar({ type: 'success', content: '完成出库批次成功' })
+        Snackbar({ type: 'success', content: i18n.global.t('common.success') })
         return true
       } catch (error) {
         console.error('Failed to complete batch:', error)
-        Snackbar({ type: 'error', content: '完成出库批次失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('common.error') })
         return false
       }
     },
@@ -96,11 +97,11 @@ export const useOutboundStore = defineStore('outbound', {
         if (batchIndex !== -1) {
           this.batches[batchIndex] = updatedBatch
         }
-        Snackbar({ type: 'success', content: '更新出库渠道成功' })
+        Snackbar({ type: 'success', content: i18n.global.t('common.success') })
         return true
       } catch (error) {
         console.error('Failed to update batch channel:', error)
-        Snackbar({ type: 'error', content: '更新出库渠道失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('common.error') })
         return false
       }
     },
@@ -121,7 +122,7 @@ export const useOutboundStore = defineStore('outbound', {
         this.pageSize = pageSize
       } catch (error) {
         console.error('Failed to fetch outbound batches:', error)
-        Snackbar({ type: 'error', content: '获取出库批次失败' })
+        Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
       } finally {
         this.loading = false
       }

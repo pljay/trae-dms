@@ -1,6 +1,6 @@
 <template>
   <div class="scan-operation-container">
-    <h1 class="page-title">{{ $t('scanOut.title') }}</h1>
+    <TopBar  :title="$t('scanOut.title')" />
     
     <!-- 返回按钮 -->
     <div class="back-section">
@@ -54,6 +54,7 @@ import { Snackbar } from '@varlet/ui'
 import { useOutboundStore } from '@/stores/outbound'
 import BarcodeScanner from '@/components/BarcodeScanner.vue'
 import { useScan } from '@/composables/useScan'
+import TopBar from '@/components/TopBar.vue'
 
 const { t } = useI18n()
 

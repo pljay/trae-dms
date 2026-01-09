@@ -1,5 +1,5 @@
 <template>
-  <var-bottom-navigation v-model:active="active" :fixed="true" :safe-area="true" >
+  <var-bottom-navigation v-model:active="activeNav" :fixed="true" :safe-area="true" :border="true" >
     <var-bottom-navigation-item
       value="/scan-in"
       :label="$t('scanIn.title')"
@@ -39,6 +39,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
+const activeNav = ref(0)
 const active = ref(route.path)  
 
 

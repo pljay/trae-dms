@@ -5,7 +5,7 @@
     <div class="search-filter-section">
       <!-- 搜索框-->
       <div class="search-box">
-        <var-input v-model="searchKeyword" :placeholder="t('common.searchPlaceholder')" clearable prefix="search"
+        <var-input v-model="searchKeyword" :placeholder="t('common.searchPlaceholder')" clearable prepend-icon="search"
           @clear="handleSearch" @keyup.enter="handleSearch">
           <template #append-icon>
             <var-button type="primary" @click="handleSearch">
@@ -18,25 +18,25 @@
       <!-- 状态筛选器 -->
       <div class="filter-section">
         <var-tabs elevation color="var(--color-primary)" active-color="var(--color-on-primary)"
-          inactive-color="var(--color-on-info)" v-model:active="activeTab" :safe-area="true">
+          inactive-color="var(--color-on-info)" v-model:active="activeTab" :safe-area="true" >
           <var-tab name="all">{{ $t('outboundRecords.filter.all') }}</var-tab>
           <var-tab name="inProgress">{{ $t('outboundRecords.filter.inProgress') }}</var-tab>
           <var-tab name="completed">{{ $t('outboundRecords.filter.completed') }}</var-tab>
         </var-tabs>
-        <var-tabs-items v-model:active="activeTab">
+        <var-tabs-items v-model:active="activeTab" :can-swipe="false">
           <var-tab-item name="all">
             <div class="table-section">
               <var-card shadow="hover">
                 <var-table>
                   <thead style="position: sticky; top: 0">
                     <tr>
-                      <td v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</td>
+                      <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="row in getFilteredBatches('all')" :key="row.id">
                       <td>{{ row.serialNumber }}</td>
-                      <td><var-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</var-tag></td>
+                      <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
                       <td>{{ row.channel }}</td>
                       <td>{{ row.quantity }}</td>
                       <td>{{ formatDate(row.createdAt) }}</td>
@@ -58,13 +58,13 @@
                 <var-table>
                   <thead style="position: sticky; top: 0">
                     <tr>
-                      <td v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</td>
+                      <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="row in getFilteredBatches('in_progress')" :key="row.id">
                       <td>{{ row.serialNumber }}</td>
-                      <td><var-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</var-tag></td>
+                      <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
                       <td>{{ row.channel }}</td>
                       <td>{{ row.quantity }}</td>
                       <td>{{ formatDate(row.createdAt) }}</td>
@@ -86,13 +86,13 @@
                 <var-table>
                   <thead style="position: sticky; top: 0">
                     <tr>
-                      <td v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</td>
+                      <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="row in getFilteredBatches('completed')" :key="row.id">
                       <td>{{ row.serialNumber }}</td>
-                      <td><var-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</var-tag></td>
+                      <td ><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
                       <td>{{ row.channel }}</td>
                       <td>{{ row.quantity }}</td>
                       <td>{{ formatDate(row.createdAt) }}</td>
@@ -132,7 +132,7 @@
   // 表格列配�?
   const columns = [
     { title: t('outboundRecords.table.serialNumber'), key: 'serialNumber', width: 200 },
-    { title: t('outboundRecords.table.status'), key: 'status', width: 120 },
+    { title: t('outboundRecords.table.status'), key: 'status', width: 200 },
     { title: t('outboundRecords.table.channel'), key: 'channel', width: 150 },
     { title: t('outboundRecords.table.quantity'), key: 'quantity', width: 100 },
     { title: t('outboundRecords.table.createdAt'), key: 'createdAt', width: 180 },

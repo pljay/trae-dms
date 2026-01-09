@@ -1,7 +1,6 @@
 <template>
   <div class="home-container">
-    <h1 class="page-title">{{ $t('home.title') }}</h1>
-
+    <TopBar :title="t('home.title')"/>
     <!-- 功能模块 -->
     <div class="function-modules">
       <var-row :gutter="[10, 10]">
@@ -145,97 +144,20 @@
         </var-row>
       </var-card>
     </div>
-
-    <!-- 入库批次进度 -->
-    <div class="inbound-batches-section">
-      <var-card shadow="hover">
-        <h2 class="stats-title">{{ $t('inboundBatches.inboundProgress') }}</h2>
-        <var-tabs v-model="activeInboundTab" class="inbound-tabs">
-          <!-- 待入库批次 -->
-          <var-tab :label="$t('inboundBatches.pendingBatches')">
-            <div class="tab-content">
-              <div v-if="pendingInboundBatches.length > 0" class="inbound-batch-list">
-                <var-list>
-                  <var-cell v-for="batch in pendingInboundBatches" :key="batch.id" class="inbound-batch-item"
-                    @click="navigateTo(`/inbound-batches/${batch.id}`)">
-                    <div class="cell-content">
-                      <div class="batch-title">
-                        <div class="batch-number">{{ batch.batchNumber }}</div>
-                        <var-tag type="warning" class="status-tag">
-                          {{ $t('status.notInbound') }}
-                        </var-tag>
-                      </div>
-                      <div class="batch-info">
-                        <div class="batch-progress">
-                          <div class="progress-text">
-                            {{ $t('inboundBatches.inboundProgressText', { current: batch.inboundQuantity, total: batch.expectedQuantity }) }}
-                          </div>
-                          <var-progress :percentage="getInboundProgress(batch)" :color="getProgressColor(batch)"
-                            :height="8" class="progress-bar" />
-                        </div>
-                        <div class="progress-percentage">
-                          {{ getInboundProgress(batch) }}%
-                        </div>
-                      </div>
-                    </div>
-                  </var-cell>
-                </var-list>
-              </div>
-              <div v-else class="empty-state">
-                <var-empty :description="$t('inboundBatches.noPendingBatches')" />
-              </div>
-            </div>
-          </var-tab>
-
-          <!-- 入库中批次 -->
-          <var-tab :label="$t('inboundBatches.inProgressBatches')">
-            <div class="tab-content">
-              <div v-if="inProgressInboundBatches.length > 0" class="inbound-batch-list">
-                <var-list>
-                  <var-cell v-for="batch in inProgressInboundBatches" :key="batch.id" class="inbound-batch-item"
-                    @click="navigateTo(`/inbound-batches/${batch.id}`)">
-                    <div class="cell-content">
-                      <div class="batch-title">
-                        <div class="batch-number">{{ batch.batchNumber }}</div>
-                        <var-tag type="primary" class="status-tag">
-                          {{ $t('status.inProgress') }}
-                        </var-tag>
-                      </div>
-                      <div class="batch-info">
-                        <div class="batch-progress">
-                          <div class="progress-text">
-                            {{ $t('inboundBatches.inboundProgressText', { current: batch.inboundQuantity, total: batch.expectedQuantity }) }}
-                          </div>
-                          <var-progress :percentage="getInboundProgress(batch)" :color="getProgressColor(batch)"
-                            :height="8" class="progress-bar" />
-                        </div>
-                        <div class="progress-percentage">
-                          {{ getInboundProgress(batch) }}%
-                        </div>
-                      </div>
-                    </div>
-                  </var-cell>
-                </var-list>
-              </div>
-              <div v-else class="empty-state">
-                <var-empty :description="$t('inboundBatches.noInProgressBatches')" />
-              </div>
-            </div>
-          </var-tab>
-        </var-tabs>
-      </var-card>
-    </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { usePackageStore } from '@/stores/package';
   import { useOutboundStore } from '@/stores/outbound';
   import { useInboundBatchStore } from '@/stores/inbound';
   import { PackageStatus } from '@/types';
+  import TopBar from '@/components/TopBar.vue';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   const router = useRouter();
   const packageStore = usePackageStore();
@@ -256,31 +178,6 @@
     packageStore.getAllPackages.filter(pkg => pkg.status === PackageStatus.PENDING).length
   );
   const totalBatches = computed(() => outboundStore.getAllBatches.length);
-
-  // 入库批次统计
-  const inProgressInboundBatches = computed(() =>
-    inboundBatchStore.inProgressBatches
-  );
-  const pendingInboundBatches = computed(() =>
-    inboundBatchStore.pendingBatches
-  );
-
-  // 激活的入库批次标签页
-  const activeInboundTab = ref(0);
-
-  // 获取入库进度百分比
-  const getInboundProgress = (batch: any) => {
-    return inboundBatchStore.getInboundProgress(batch);
-  };
-
-  // 获取进度条颜色
-  const getProgressColor = (batch: any) => {
-    const progress = getInboundProgress(batch);
-    if (progress === 100) return '#4CAF50';
-    if (progress >= 50) return '#2196F3';
-    if (progress >= 25) return '#FFC107';
-    return '#FF5252';
-  };
 
   const getInStockPercentage = computed(() => {
     if (totalPackages.value === 0) return 0;
@@ -308,7 +205,6 @@
   .page-title {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #333;
     margin-bottom: 30px;
     text-align: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -330,7 +226,7 @@
 
   .module-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 20px;
   }
 
   .module-content {
@@ -354,32 +250,26 @@
 
   .camera-icon {
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-    color: white;
   }
 
   .document-icon {
     background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-    color: white;
   }
 
   .upload-icon {
     background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-    color: white;
   }
 
   .list-icon {
     background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
-    color: white;
   }
 
   .in-icon {
     background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
-    color: white;
   }
 
   .batch-icon {
     background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
-    color: white;
   }
 
   .module-icon:hover {
@@ -389,13 +279,11 @@
   .module-title {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #333;
     margin-bottom: 10px;
   }
 
   .module-desc {
     font-size: 0.9rem;
-    color: #666;
     line-height: 1.5;
   }
 
@@ -406,13 +294,12 @@
   .stats-title {
     font-size: 1.8rem;
     font-weight: 600;
-    color: #333;
     margin-bottom: 20px;
     text-align: center;
   }
 
   .stat-card {
-    background: white;
+    background: var(--color-body);
     border-radius: 16px;
     padding: 20px;
     height: 100%;
@@ -420,12 +307,12 @@
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--color-border);
   }
 
   .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 24px var(--color-shadow);
   }
 
   .stat-header {
@@ -436,29 +323,15 @@
   }
 
   .stat-header .var-icon {
-    color: #667eea;
     flex-shrink: 0;
   }
 
   .stat-label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #333;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .stat-instock .stat-header .var-icon {
-    color: #00b894;
-  }
-
-  .stat-pending .stat-header .var-icon {
-    color: #fdcb6e;
-  }
-
-  .stat-batches .stat-header .var-icon {
-    color: #6c5ce7;
   }
 
   .stat-body {
@@ -472,22 +345,9 @@
   .stat-number {
     font-size: 2.8rem;
     font-weight: 700;
-    color: #333;
     text-align: center;
     margin-bottom: 12px;
     line-height: 1;
-  }
-
-  .stat-instock .stat-number {
-    color: #00b894;
-  }
-
-  .stat-pending .stat-number {
-    color: #fdcb6e;
-  }
-
-  .stat-batches .stat-number {
-    color: #6c5ce7;
   }
 
   .stat-progress {
@@ -503,18 +363,6 @@
     font-size: 0.75rem;
     height: 20px;
     line-height: 20px;
-  }
-
-  .stat-total {
-    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-  }
-
-  .stat-total .stat-header .var-icon {
-    color: #667eea;
-  }
-
-  .stat-total .stat-number {
-    color: #667eea;
   }
 
   @media (max-width: 768px) {
@@ -573,90 +421,6 @@
     }
   }
 
-  /* 入库批次样式 */
-  .inbound-batches-section {
-    margin-bottom: 40px;
-  }
-
-  .inbound-tabs {
-    margin-top: 20px;
-  }
-
-  .inbound-batch-list {
-    margin-bottom: 20px;
-  }
-
-  .inbound-batch-item {
-    margin-bottom: 12px;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-
-  .inbound-batch-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .cell-content {
-    width: 100%;
-  }
-
-  .batch-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .batch-number {
-    font-weight: 600;
-    font-size: 16px;
-    color: #333;
-  }
-
-  .status-tag {
-    font-size: 12px;
-  }
-
-  .batch-info {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .batch-progress {
-    width: 100%;
-  }
-
-  .progress-text {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 4px;
-  }
-
-  .progress-bar {
-    width: 100%;
-  }
-
-  .progress-percentage {
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    text-align: right;
-  }
-
-  .empty-state {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-    margin: 20px 0;
-  }
-
-  .tab-content {
-    padding: 12px 0;
-  }
 
   @media (max-width: 768px) {
     .inbound-batches-section {

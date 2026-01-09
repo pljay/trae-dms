@@ -1,14 +1,14 @@
 <template>
-  <var-app-bar :title="$t('home.title')" fixed :show-text="true" :safe-area-top="true" z-index="1000">
+  <var-app-bar  :title="$t('home.title')" fixed :show-text="true" :safe-area-top="true" z-index="1000">
     <!-- 左侧：主页按钮 -->
-    <template #left>
+    <template #left v-if="!isLoginPage">
       <var-button type="primary" @click="navigateToHome" round>
         <var-icon name="home" />
       </var-button>
     </template>
 
     <!-- 中间：标题（可选） -->
-    <template #content>
+    <template #content v-if="!isLoginPage">
       <slot name="title"></slot>
     </template>
 
@@ -18,7 +18,7 @@
       <var-menu-select :show="showLangPopup" @update:show="showLangPopup = $event" placement="bottom" trigger="click">
         <var-button type="primary">
           <var-icon name="translate" />
-          <span>{{ currentLocale === 'zh-CN' ? $t('common.chinese') : $t('common.english') }}</span>
+          <span>{{ getCurrentLocaleText() }}</span>
           <var-icon name="chevron-down" />
         </var-button>
         <template #options>
@@ -27,6 +27,12 @@
           </var-menu-option>
           <var-menu-option value="en-US" @click="selectLanguage('en-US')">
             {{ $t('common.english') }}
+          </var-menu-option>
+          <var-menu-option value="fr-FR" @click="selectLanguage('fr-FR')">
+            {{ $t('common.french') }}
+          </var-menu-option>
+          <var-menu-option value="de-DE" @click="selectLanguage('de-DE')">
+            {{ $t('common.german') }}
           </var-menu-option>
         </template>
       </var-menu-select>
@@ -38,7 +44,7 @@
       </var-button>
 
       <!-- 登录信息 -->
-      <var-menu-select :show="showUserPopup" @update:show="showUserPopup = $event" placement="bottom" trigger="click" width="200px">
+      <var-menu-select v-if="!isLoginPage" :show="showUserPopup" @update:show="showUserPopup = $event" placement="bottom" trigger="click" width="200px">
         <var-button type="primary">
           <var-icon name="account-circle" />
           <span>{{ username }}</span>
@@ -75,9 +81,8 @@
   import { useAuthStore } from '@/stores/auth';
 
   const router = useRouter();
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const authStore = useAuthStore();
-
   // 响应式状态
   const currentLocale = ref(locale.value);
   const isDark = ref(false);
@@ -87,6 +92,8 @@
   // 控制弹窗显示
   const showLangPopup = ref(false);
   const showUserPopup = ref(false);
+  const isLoginPage = ref(false);
+
 
   // 检查是否为移动设备
   const checkIsMobile = () => {
@@ -96,6 +103,22 @@
   // 导航到主页
   const navigateToHome = () => {
     router.push('/home');
+  };
+
+  // 获取当前语言文本
+  const getCurrentLocaleText = () => {
+    switch (currentLocale.value) {
+      case 'zh-CN':
+        return t('common.chinese');
+      case 'en-US':
+        return t('common.english');
+      case 'fr-FR':
+        return t('common.french');
+      case 'de-DE':
+        return t('common.german');
+      default:
+        return t('common.chinese');
+    }
   };
 
   // 处理国际化切换
@@ -146,6 +169,11 @@
 
   // 组件挂载时初始化
   onMounted(() => {
+    // 监听路由变化，更新isLoginPage
+    console.log("router.currentRoute.value.path", router.currentRoute.value.path)
+    isLoginPage.value = router.currentRoute.value.path === '/login' || router.currentRoute.value.path === '/';
+      
+
     // 检查本地存储中的主题和语言设置
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
@@ -165,10 +193,10 @@
     // 添加窗口大小变化监听
     window.addEventListener('resize', checkIsMobile);
   });
-
-  // 组件卸载前清理
   onBeforeUnmount(() => {
     window.removeEventListener('resize', checkIsMobile);
+    isLoginPage.value = false;
   });
+
 </script>
 

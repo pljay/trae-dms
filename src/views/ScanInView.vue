@@ -96,6 +96,7 @@
   import { Package } from '@/types'
   import BarcodeScanner from '@/components/BarcodeScanner.vue'
   import TopBar from '@/components/TopBar.vue'
+  import voiceNotification from '@/utils/voiceNotification'
 
   const { t } = useI18n()
   const packageStore = usePackageStore()
@@ -118,6 +119,8 @@
         content: t('scanIn.scanSuccess'),
         duration: 2000
       })
+      // 播放扫描成功语音
+      voiceNotification.speakScanSuccess()
     } else if (result === null && packageStore.scanError) {
       // 模拟拦截情况
       scanResult.value = packageStore.scanError.pkg
@@ -128,6 +131,8 @@
         content: t('scanIn.intercepted'),
         duration: 2000
       })
+      // 播放拦截语音
+      voiceNotification.speakIntercepted()
     } else {
       scanStatus.value = 'error'
       errorMessage.value = t('scanIn.scanFailed')
@@ -136,6 +141,8 @@
         content: t('scanIn.scanFailed'),
         duration: 2000
       })
+      // 播放扫描失败语音
+      voiceNotification.speakScanFailed()
     }
 
     // 3秒后清空结果

@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { Snackbar } from '@varlet/ui'
 import { usePackageStore } from '@/stores/package'
 import { useOutboundStore } from '@/stores/outbound'
+import voiceNotification from '@/utils/voiceNotification'
 
 export function useScan() {
   const { t } = useI18n()
@@ -25,6 +26,8 @@ export function useScan() {
         content: t('scanIn.scanSuccess'),
         duration: 2000
       })
+      // 播放扫描成功语音
+      voiceNotification.speakScanSuccess()
       return true
     } else {
       Snackbar({
@@ -32,6 +35,8 @@ export function useScan() {
         content: t('common.error'),
         duration: 2000
       })
+      // 播放扫描失败语音
+      voiceNotification.speakScanFailed()
       return false
     }
   }
@@ -43,6 +48,8 @@ export function useScan() {
       content: message,
       duration: 2000
     })
+    // 播放错误语音
+    voiceNotification.speakError()
   }
 
   // 重置扫描计数
@@ -69,12 +76,16 @@ export function useScan() {
         content: t('common.success'),
         duration: 2000
       })
+      // 播放成功语音
+      voiceNotification.speakSuccess()
     } else {
       Snackbar({
         type: 'error',
         content: t('common.error'),
         duration: 2000
       })
+      // 播放错误语音
+      voiceNotification.speakError()
     }
     return success
   }

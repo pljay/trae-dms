@@ -9,7 +9,7 @@ export default defineConfig({
     vue(),
     viteMockServe({
       mockPath: 'src/mock', // mock文件存放目录
-      enable: true, // 开发环境启用mock
+      enable: true, // 在开发和生产环境都启用mock
       watchFiles: true, // 监听mock文件变化
       logger: true // 开启日志输出
     })

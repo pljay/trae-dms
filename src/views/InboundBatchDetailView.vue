@@ -11,12 +11,12 @@
           </div>
           <div class="info-row">
             <span class="label">{{ $t('inboundBatches.labels.status') }}</span>
-            <var-tag
+            <var-chip
               :type="getStatusTagType(currentBatch?.status)"
               class="status-tag"
             >
               {{ getStatusText(currentBatch?.status) }}
-            </var-tag>
+            </var-chip>
           </div>
           <div class="info-row">
             <span class="label">{{ $t('inboundBatches.labels.createdAt') }}</span>
@@ -94,12 +94,12 @@
               <div class="cell-content">
                 <div class="package-title">
                   <div class="track-no">{{ pkg.trackNo }}</div>
-                  <var-tag
+                  <var-chip
                     :type="getPackageStatusTagType(pkg.status)"
                     class="package-status-tag"
                   >
                     {{ getPackageStatusText(pkg.status) }}
-                  </var-tag>
+                  </var-chip>
                 </div>
                 <div class="package-info">
                   <div class="package-details">
@@ -264,7 +264,6 @@ onMounted(() => {
 <style scoped>
 .inbound-batch-detail {
   min-height: 100vh;
-  background-color: #f5f5f5;
 }
 
 .content {
@@ -289,13 +288,11 @@ onMounted(() => {
 
 .label {
   font-weight: 500;
-  color: #666;
   width: 80px;
 }
 
 .value {
   flex: 1;
-  color: #333;
 }
 
 .status-tag {
@@ -308,7 +305,6 @@ onMounted(() => {
 
 .progress-text {
   font-size: 14px;
-  color: #666;
   margin-bottom: 4px;
 }
 
@@ -327,7 +323,6 @@ onMounted(() => {
   gap: 8px;
   font-weight: 600;
   font-size: 16px;
-  color: #333;
 }
 
 .channels-list {
@@ -355,12 +350,10 @@ onMounted(() => {
 .channel-name {
   font-weight: 500;
   font-size: 16px;
-  color: #333;
 }
 
 .channel-progress-text {
   font-size: 14px;
-  color: #666;
 }
 
 .channel-progress-bar {
@@ -392,7 +385,6 @@ onMounted(() => {
 .track-no {
   font-weight: 600;
   font-size: 16px;
-  color: #333;
 }
 
 .package-status-tag {
@@ -409,7 +401,6 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   font-size: 14px;
-  color: #666;
 }
 
 .detail-item {
@@ -420,7 +411,6 @@ onMounted(() => {
 
 .package-date {
   font-size: 12px;
-  color: #999;
 }
 
 .empty-state {
