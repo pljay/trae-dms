@@ -1,7 +1,7 @@
 <template>
   <div class="scan-view">
     <!-- 扫描区域（微信风格） -->
-    <div class="scan-area barcode-scanner-active">
+    <div class="scan-area">
       <!-- 扫描框 -->
       <div class="scan-frame">
         <!-- 扫描线 -->
@@ -80,8 +80,7 @@ const isScanning = ref(false)
 const isTorchEnabled = ref(false)
 const isTorchAvailable = ref(false)
 
-// Web 平台视频元素
-const videoElement = ref<HTMLVideoElement | null>(null)
+
 
 // 扫码监听器引用
 let barcodeListener: any = null
@@ -156,10 +155,10 @@ const startScan = async () => {
     
     // 检查手电筒可用性
     await checkTorchAvailability()
-    
+    document.querySelector('scan-frame')?.classList.add('barcode-scanner-active');
     // 启动扫描
     isScanning.value = true
-    
+
     // 添加条码扫描监听器
     barcodeListener = await BarcodeScanner.addListener(
       'barcodesScanned',
@@ -173,36 +172,12 @@ const startScan = async () => {
         }
       }
     )
-    
-    // 为所有平台创建视频元素（修复Android黑屏问题）
-    // 创建视频元素
-    const video = document.createElement('video')
-    video.style.top = '0'
-    video.style.left = '0'
-    video.style.width = '100%'
-    video.style.height = '100%'
-    video.style.objectFit = 'cover'
-    video.setAttribute('playsinline', 'true')
-    video.setAttribute('muted', 'true')
-    video.setAttribute('autoplay', 'true') // 确保自动播放
-    video.autoplay = true
-    video.playsInline = true
-    video.muted = true
-    video.style.position = 'absolute'
-    video.style.zIndex = '0'
-    videoElement.value = video
-    
-    // 添加到扫描区域
-    const scanArea = document.querySelector('.scan-frame')
-    if (scanArea) {
-      scanArea.appendChild(video)
-    }
-    
-    // 启动扫描
+    // 启动扫描 - 插件会在原生层面处理视频流
     await BarcodeScanner.startScan({
       formats: [BarcodeFormat.QrCode, BarcodeFormat.Code128, BarcodeFormat.Ean13],
       lensFacing: LensFacing.Back
     })
+    
   } catch (error) {
     console.error('Scan error:', error)
     Snackbar({ type: 'error', content: t('scan.scanFailed') })
@@ -212,6 +187,8 @@ const startScan = async () => {
 
 // 停止扫描
 const stopScan = async () => {
+   // Make all elements in the WebView visible again
+  document.querySelector('scan-frame')?.classList.remove('barcode-scanner-active');
   isScanning.value = false
   try {
     // 移除所有监听器
@@ -228,15 +205,6 @@ const stopScan = async () => {
     
     // 恢复亮度
     await restoreBrightness()
-    
-    // Web 平台：清理视频元素
-    if (Capacitor.getPlatform() === 'web' && videoElement.value) {
-      // 移除视频元素
-      if (videoElement.value.parentNode) {
-        videoElement.value.parentNode.removeChild(videoElement.value)
-      }
-      videoElement.value = null
-    }
   } catch (error) {
     console.error('Failed to stop scan:', error)
   }
@@ -305,7 +273,7 @@ onBeforeUnmount(async () => {
 <style scoped lang="css">
 .scan-view {
   width: 100%;
-  background-color: black;
+  /* background-color: black; */
   display: flex;
   flex-direction: column;
   overflow: hidden;
