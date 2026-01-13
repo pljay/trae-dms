@@ -1,10 +1,39 @@
 <template>
   <div class="scan-in-container">
-    <TopBar :title="t('scanIn.title')" />
-
-    <!-- 扫描区域 -->
+    <!-- 扫描按钮 -->
     <div class="scan-section">
-      <BarcodeScanner :title="$t('scanIn.scanBarcode')" :autoStart="false" @scan="handleScan" @error="handleError" />
+      <var-card shadow="hover" class="scan-card">
+        <div class="scan-button-container">
+          <var-button
+            type="primary"
+            size="large"
+            :icon="'camera'"
+            @click="goToScan"
+          >
+            {{ $t('scanIn.cameraScan') }}
+          </var-button>
+          
+          <!-- 手动输入区域 -->
+          <div class="manual-input-section">
+            <var-input
+              v-model="manualInput"
+              :placeholder="$t('scanIn.manualInput')"
+              @keyup.enter="handleManualInput"
+              size="normal"
+              clearable
+            >
+            </var-input>
+            <var-button
+              type="success"
+              size="large"
+              @click="handleManualInput"
+              :disabled="!manualInput.trim()"
+            >
+              {{ $t('common.confirm') }}
+            </var-button>
+          </div>
+        </div>
+      </var-card>
     </div>
 
     <!-- 入库结果 -->
@@ -89,20 +118,35 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useRouter } from 'vue-router'
   import { Snackbar } from '@varlet/ui'
   import { usePackageStore } from '@/stores/package'
   import { Package } from '@/types'
-  import BarcodeScanner from '@/components/BarcodeScanner.vue'
-  import TopBar from '@/components/TopBar.vue'
   import voiceNotification from '@/utils/voiceNotification'
+  import { useTitleStore } from '@/stores/title'
 
   const { t } = useI18n()
+  const router = useRouter()
   const packageStore = usePackageStore()
   const scanResult = ref<Package | null>(null)
   const scanStatus = ref<'success' | 'error' | 'intercept' | null>(null)
   const errorMessage = ref<string>('')
+  const manualInput = ref<string>('')
+  const titleStore = useTitleStore()
+  titleStore.setTitle('scanIn.title')
+
+  // 跳转到独立扫描页面
+  const goToScan = () => {
+    router.push({
+      name: 'scan',
+      query: {
+        from: 'scan-in',
+        callback: 'handleScan'
+      }
+    })
+  }
 
   // 处理扫描结果
   const handleScan = async (code: string) => {
@@ -153,14 +197,24 @@
     }, 3000)
   }
 
-  // 处理扫描错误
-  const handleError = (message: string) => {
-    Snackbar({
-      type: 'error',
-      content: message,
-      duration: 2000
-    })
+  // 处理手动输入
+  const handleManualInput = async () => {
+    if (manualInput.value.trim()) {
+      await handleScan(manualInput.value.trim())
+      manualInput.value = ''
+    }
   }
+
+  // 检查会话存储中是否有扫描结果（从独立扫描页面返回）
+  onMounted(() => {
+    const scanResultFromStorage = sessionStorage.getItem('scanResult')
+    if (scanResultFromStorage) {
+      // 清除会话存储中的扫描结果
+      sessionStorage.removeItem('scanResult')
+      // 处理扫描结果
+      handleScan(scanResultFromStorage)
+    }
+  })
 </script>
 
 <style scoped lang="css">
@@ -172,6 +226,37 @@
 
   .scan-section {
     margin-bottom: 30px;
+  }
+
+  .scan-card {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .scan-button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    gap: 20px;
+  }
+
+  .scan-button-container :deep(.var-button) {
+    min-height: 56px;
+    min-width: 200px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .manual-input-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .manual-input-section :deep(.var-input) {
+    margin-bottom: 10px;
   }
 
   .result-section {

@@ -229,12 +229,56 @@ export default {
 
   // 状态
   status: {
-    inStock: 'En stock',
-    pending: 'En attente',
-    outOfStock: 'Hors stock',
-    inProgress: 'En cours',
-    completed: 'Terminé',
-    notInbound: 'Non entré',
-    unknown: 'Inconnu'
+    // 包裹状态
+    package: {
+      inStock: 'En stock',
+      pending: 'En attente',
+      pendingIntercept: 'Interception en attente',
+      intercepted: 'Intercepté',
+      outOfStock: 'Hors stock',
+      unknown: 'Inconnu'
+    },
+    // 入仓批次状态
+    inboundBatch: {
+      pending: 'En attente',
+      inProgress: 'En cours',
+      completed: 'Terminé',
+      outboundInProgress: 'Sortie en cours',
+      outboundCompleted: 'Sortie terminée'
+    },
+    // 出库批次状态
+    outboundBatch: {
+      inProgress: 'En cours',
+      completed: 'Terminé'
+    }
+  },
+  
+  // 扫码页面
+  scan: {
+    title: 'Scan',
+    pointCamera: 'Placez le code QR/barcode dans le cadre pour scanner automatiquement',
+    help: 'Prend en charge les codes QR et les barcodes',
+    lightOn: 'Allumer la lampe torche',
+    lightOff: 'Éteindre la lampe torche',
+    album: 'Sélectionner depuis l\'album',
+    manualInput: 'Saisie manuelle',
+    enterCode: 'Veuillez entrer le code',
+    scanSuccess: 'Scan réussi',
+    scanFailed: 'Échec du scan',
+    cameraPermissionDenied: 'Permission de caméra refusée',
+    flashlightError: 'Échec de l\'opération de lampe torche',
+    albumNotSupported: 'La numérisation depuis l\'album n\'est pas prise en charge pour le moment',
+    scanTimeout: 'Délai de scan dépassé, veuillez réessayer'
+  },
+
+  // 语音设置
+  voiceSetting: {
+    title: 'Paramètres vocaux',
+    volume: 'Volume',
+    pitch: 'Hauteur',
+    rate: 'Vitesse',
+    test: 'Tester la voix',
+    testText: 'Ceci est un message de test vocal',
+    testFailed: 'Échec du test vocal'
   }
 };

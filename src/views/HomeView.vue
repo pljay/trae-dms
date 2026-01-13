@@ -1,6 +1,5 @@
 <template>
   <div class="home-container">
-    <TopBar :title="t('home.title')"/>
     <!-- 功能模块 -->
     <div class="function-modules">
       <var-row :gutter="[10, 10]">
@@ -154,15 +153,15 @@
   import { useOutboundStore } from '@/stores/outbound';
   import { useInboundBatchStore } from '@/stores/inbound';
   import { PackageStatus } from '@/types';
-  import TopBar from '@/components/TopBar.vue';
-  import { useI18n } from 'vue-i18n';
-
-  const { t } = useI18n();
+  import { useTitleStore } from '@/stores/title';
 
   const router = useRouter();
   const packageStore = usePackageStore();
   const outboundStore = useOutboundStore();
   const inboundBatchStore = useInboundBatchStore();
+  const titleStore = useTitleStore();
+  // 直接传递标题键，而不是翻译后的固定字符串
+  titleStore.setTitle('home.title');
 
   // 导航到指定页面
   const navigateTo = (path: string) => {

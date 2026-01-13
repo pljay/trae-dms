@@ -3,9 +3,11 @@ import { faker } from '@faker-js/faker'
 
 // 包裹状态枚举
 const PackageStatus = {
-  IN_STOCK: 'in_stock',
-  OUT_OF_STOCK: 'out_of_stock',
-  PENDING: 'pending'
+  PENDING: 'pending',       // 待入库
+  IN_STOCK: 'in_stock',     // 已入库
+  PENDING_INTERCEPT: 'pending_intercept', // 待拦截
+  INTERCEPTED: 'intercepted', // 已拦截
+  OUT_OF_STOCK: 'out_of_stock' // 已出库
 }
 
 // 渠道列表
@@ -37,9 +39,9 @@ const mockPackages = Array.from({ length: 50 }, (_, i) => {
   const createdAt = faker.date.past({ refDate: new Date()})
   
   // 生成扫描时间，根据状态决定
-  const scanInAt = faker.date.between({ from: createdAt, to: new Date() })
+  const scanInAt = status === PackageStatus.PENDING ? null : faker.date.between({ from: createdAt, to: new Date() })
   const scanOutAt = status === PackageStatus.OUT_OF_STOCK 
-    ? faker.date.between({ from: scanInAt, to: new Date() })
+    ? faker.date.between({ from: scanInAt || createdAt, to: new Date() })
     : null
   
   // 只有出库状态才有批次号
@@ -55,11 +57,11 @@ const mockPackages = Array.from({ length: 50 }, (_, i) => {
     height: faker.number.float({ min: 3, max: 33, fractionDigits: 1 }), // 3cm - 33cm, 保留一位小数
     channel: faker.helpers.arrayElement(channels),
     country: faker.helpers.arrayElement(countries),
-    scanInAt: scanInAt.toISOString(),
+    scanInAt: scanInAt?.toISOString() || null,
     scanOutAt: scanOutAt?.toISOString() || null,
     batchSerialNumber,
     createdAt: createdAt.toISOString(),
-    updatedAt: scanOutAt?.toISOString() || scanInAt.toISOString()
+    updatedAt: scanOutAt?.toISOString() || scanInAt?.toISOString() || createdAt.toISOString()
   }
 })
 

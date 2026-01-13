@@ -1,6 +1,5 @@
 <template>
   <div class="inbound-batches-container">
-    <TopBar :title="t('inboundBatches.title')" />
     <div class="content">
       <!-- 搜索框 -->
       <div class="search-section">
@@ -15,18 +14,19 @@
       <!-- 状态筛选 -->
       <var-tabs color="var(--color-primary)" active-color="var(--color-on-primary)" inactive-color="var(--color-on-info)"
       v-model:active="activeTab" :safe-area="true">
-        <var-tab name="pending">{{ $t('inboundBatches.pendingBatches') }}</var-tab>
-        <var-tab name="in_progress">{{ $t('inboundBatches.inProgressBatches') }}</var-tab>
+        <var-tab v-for="statusItem in statusTabs" :key="statusItem.value" :name="statusItem.value">
+          {{ statusItem.label }}
+        </var-tab>
       </var-tabs>
       <var-tabs-items v-model:active="activeTab" :can-swipe="false">
-        <var-tab-item name="pending">
+        <var-tab-item v-for="statusItem in statusTabs" :key="statusItem.value" :name="statusItem.value">
           <var-list>
-            <var-cell v-for="batch in filteredBatchesByStatus('pending')" :key="batch.id" class="batch-item"
+            <var-cell v-for="batch in filteredBatchesByStatus(statusItem.value)" :key="batch.id" class="batch-item"
               @click="navigateToBatchDetail(batch.id)">
               <div class="cell-content">
                 <div class="batch-title">
                   <div class="batch-number">{{ batch.batchNumber }}</div>
-                  <var-button text outline type="warning" size="mini">{{ $t('status.notInbound') }}</var-button>
+                  <var-button text outline :type="getStatusType(batch.status)" size="mini">{{ getStatusText(batch.status) }}</var-button>
                 </div>
                 <div class="batch-info">
                   <div class="batch-progress">
@@ -42,31 +42,10 @@
                 </div>
               </div>
             </var-cell>
-          </var-list>
-        </var-tab-item>
-        <var-tab-item name="in_progress">
-          <var-list>
-            <var-cell v-for="batch in filteredBatchesByStatus('in_progress')" :key="batch.id" class="batch-item"
-              @click="navigateToBatchDetail(batch.id)">
-              <div class="cell-content">
-                <div class="batch-title">
-                  <div class="batch-number">{{ batch.batchNumber }}</div>
-                  <var-button text outline type="primary" size="mini">{{ $t('status.inProgress') }}</var-button>
-                </div>
-                <div class="batch-info">
-                  <div class="batch-progress">
-                    <div class="progress-text">
-                      入库进度: {{ batch.inboundQuantity }}/{{ batch.expectedQuantity }}
-                    </div>
-                    <var-progress :percentage="getInboundProgress(batch)" :color="getProgressColor(batch)" :height="6"
-                      class="progress-bar" />
-                  </div>
-                  <div class="batch-date">
-                    创建时间: {{ batch.createdAt}}
-                  </div>
-                </div>
-              </div>
-            </var-cell>
+            <!-- 空状态 -->
+            <div v-if="filteredBatchesByStatus(statusItem.value).length === 0" class="empty-state">
+              <span>{{ getEmptyStateMessage(statusItem.value) }}</span>
+            </div>
           </var-list>
         </var-tab-item>
       </var-tabs-items>
@@ -77,21 +56,32 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
-  import TopBar from '@/components/TopBar.vue'
   import { useInboundBatchStore } from '@/stores/inbound'
   import { formatDate as formatDateUtil } from '@/utils/dateFormat'
   import { InboundStatus } from '@/types'
   import { useI18n } from 'vue-i18n'
+  import { useTitleStore } from '@/stores/title'
 
   const { t } = useI18n()
 
   const inboundBatchStore = useInboundBatchStore()
   const router = useRouter()
+  const titleStore = useTitleStore()
+  titleStore.setTitle('inboundBatches.title')
 
   // 搜索关键词
   const searchKeyword = ref('')
   // 激活的标签页
   const activeTab = ref('pending')
+
+  // 状态标签页配置
+  const statusTabs = [
+    { value: 'pending', label: t('inboundBatches.pendingBatches') },
+    { value: 'in_progress', label: t('inboundBatches.inProgressBatches') },
+    { value: 'completed', label: t('inboundBatches.completedBatches') },
+    { value: 'outbound_in_progress', label: t('inboundBatches.outboundInProgressBatches') },
+    { value: 'outbound_completed', label: t('inboundBatches.outboundCompletedBatches') }
+  ]
 
   // 筛选后的批次列表
   const filteredBatches = () => {
@@ -117,8 +107,71 @@
       case 'in_progress':
         batches = batches.filter(batch => batch.status === InboundStatus.IN_PROGRESS)
         break
+      case 'completed':
+        batches = batches.filter(batch => batch.status === InboundStatus.COMPLETED)
+        break
+      case 'outbound_in_progress':
+        batches = batches.filter(batch => batch.status === InboundStatus.OUTBOUND_IN_PROGRESS)
+        break
+      case 'outbound_completed':
+        batches = batches.filter(batch => batch.status === InboundStatus.OUTBOUND_COMPLETED)
+        break
     }
     return batches
+  }
+
+  // 获取状态文本
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case InboundStatus.PENDING:
+        return t('status.inboundBatch.pending')
+      case InboundStatus.IN_PROGRESS:
+        return t('status.inboundBatch.inProgress')
+      case InboundStatus.COMPLETED:
+        return t('status.inboundBatch.completed')
+      case InboundStatus.OUTBOUND_IN_PROGRESS:
+        return t('status.inboundBatch.outboundInProgress')
+      case InboundStatus.OUTBOUND_COMPLETED:
+        return t('status.inboundBatch.outboundCompleted')
+      default:
+        return t('status.inboundBatch.unknown')
+    }
+  }
+
+  // 获取状态标签类型
+  const getStatusType = (status: string) => {
+    switch (status) {
+      case InboundStatus.PENDING:
+        return 'warning'
+      case InboundStatus.IN_PROGRESS:
+        return 'primary'
+      case InboundStatus.COMPLETED:
+        return 'success'
+      case InboundStatus.OUTBOUND_IN_PROGRESS:
+        return 'info'
+      case InboundStatus.OUTBOUND_COMPLETED:
+        return 'default'
+      default:
+        return 'default'
+    }
+  }
+
+  // 获取空状态提示信息
+  const getEmptyStateMessage = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return t('inboundBatches.noPendingBatches')
+      case 'in_progress':
+        return t('inboundBatches.noInProgressBatches')
+      case 'completed':
+        return t('inboundBatches.noCompletedBatches')
+      case 'outbound_in_progress':
+        return t('inboundBatches.noOutboundInProgressBatches')
+      case 'outbound_completed':
+        return t('inboundBatches.noOutboundCompletedBatches')
+      default:
+        return t('common.noData')
+    }
   }
 
   // 处理搜索

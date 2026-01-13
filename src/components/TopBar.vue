@@ -1,17 +1,13 @@
 <template>
-  <var-app-bar  :title="$t('home.title')" fixed :show-text="true" :safe-area-top="true" z-index="1000">
+  <var-app-bar  fixed :show-text="true" :safe-area-top="true" z-index="9999">
+    {{$t(titleStore.getTitle())}}
     <!-- 左侧：主页按钮 -->
     <template #left v-if="!isLoginPage">
       <var-button type="primary" @click="navigateToHome" round>
-        <var-icon name="home" />
+        <var-icon name="home" ></var-icon>
       </var-button>
     </template>
-
-    <!-- 中间：标题（可选） -->
-    <template #content v-if="!isLoginPage">
-      <slot name="title"></slot>
-    </template>
-
+  
     <!-- 右侧：功能按钮 -->
     <template #right>
       <!-- 国际化切换 -->
@@ -44,7 +40,8 @@
       </var-button>
 
       <!-- 登录信息 -->
-      <var-menu-select v-if="!isLoginPage" :show="showUserPopup" @update:show="showUserPopup = $event" placement="bottom" trigger="click" width="200px">
+      <var-menu-select v-if="!isLoginPage" :show="showUserPopup" @update:show="showUserPopup = $event"
+        placement="bottom" trigger="click" width="200px">
         <var-button type="primary">
           <var-icon name="account-circle" />
           <span>{{ username }}</span>
@@ -54,16 +51,20 @@
           <!-- <var-menu-option @click="handleProfile">
             <var-icon name="account-circle" />
             {{ $t('common.userProfile') }}
+          </var-menu-option> -->
+          <var-menu-option @click="handleVoiceSetting">
+            <var-icon name="volume-high" />
+            {{ $t('voiceSetting.title') }}
           </var-menu-option>
-          <var-menu-option @click="handleSettings">
+          <!-- <var-menu-option @click="handleSettings">
             <var-icon name="settings" />
             {{ $t('common.settings') }}
-          </var-menu-option>
-          <var-menu-option @click="handleHelp">
+          </var-menu-option> -->
+          <!-- <var-menu-option @click="handleHelp">
             <var-icon name="help-circle" />
             {{ $t('common.help') }}
-          </var-menu-option>
-          <var-divider /> -->
+          </var-menu-option> -->
+          <var-divider />
           <var-menu-option @click="handleLogout">
             {{ $t('common.logout') }}
           </var-menu-option>
@@ -74,12 +75,13 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
+  import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue';
   import { StyleProvider, Themes } from '@varlet/ui'
   import { useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
   import { useAuthStore } from '@/stores/auth';
-
+  import { useTitleStore } from '@/stores/title';
+  const titleStore = useTitleStore();
   const router = useRouter();
   const { locale, t } = useI18n();
   const authStore = useAuthStore();
@@ -93,6 +95,8 @@
   const showLangPopup = ref(false);
   const showUserPopup = ref(false);
   const isLoginPage = ref(false);
+  // 标题响应式变量，初始值使用翻译后的文本
+  const title = ref(t(titleStore.getTitle()) || '');
 
 
   // 检查是否为移动设备
@@ -145,7 +149,15 @@
   //   // router.push('/profile');
   // };
 
-  // // 处理设置
+  // 处理语音设置
+  const handleVoiceSetting = () => {
+    console.log('语音设置');
+    showUserPopup.value = false;
+    // 导航到语音设置页面
+    router.push('/voice-setting');
+  };
+
+  // 处理设置
   // const handleSettings = () => {
   //   console.log('设置');
   //   showUserPopup.value = false;
@@ -153,7 +165,7 @@
   //   // router.push('/settings');
   // };
 
-  // // 处理帮助
+  // 处理帮助
   // const handleHelp = () => {
   //   console.log('帮助');
   //   showUserPopup.value = false;
@@ -172,7 +184,6 @@
     // 监听路由变化，更新isLoginPage
     console.log("router.currentRoute.value.path", router.currentRoute.value.path)
     isLoginPage.value = router.currentRoute.value.path === '/login' || router.currentRoute.value.path === '/';
-      
 
     // 检查本地存储中的主题和语言设置
     const savedTheme = localStorage.getItem('theme');
@@ -193,10 +204,25 @@
     // 添加窗口大小变化监听
     window.addEventListener('resize', checkIsMobile);
   });
+
+  watch(() => router.currentRoute.value.path, (newPath) => {
+    isLoginPage.value = newPath === '/login' || newPath === '/';
+  })
+  
+  // 监听标题变化
+  watch(() => titleStore.getTitle(), () => {
+    title.value = t(titleStore.getTitle()) || ''
+    console.log("title.value", title.value)
+  })
+  
+  // 监听语言变化，当语言切换时更新标题翻译
+  watch(() => locale.value, () => {
+    title.value = t(titleStore.getTitle()) || ''
+  })
+
   onBeforeUnmount(() => {
     window.removeEventListener('resize', checkIsMobile);
     isLoginPage.value = false;
   });
 
 </script>
-

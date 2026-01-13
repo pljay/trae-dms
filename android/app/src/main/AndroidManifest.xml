@@ -43,12 +43,18 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.USE_TEXT_TO_SPEECH" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        <!-- Android 14 新增的权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     
     <!-- Camera features -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
     
     <!-- Required for @capacitor-community/barcode-scanner plugin -->
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
+
 </manifest>

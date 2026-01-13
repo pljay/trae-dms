@@ -60,8 +60,10 @@ export default {
     title: 'Package Records',
     filter: {
       all: 'All',
-      inStock: 'In Stock',
       pending: 'Pending',
+      inStock: 'In Stock',
+      pendingIntercept: 'Pending Intercept',
+      intercepted: 'Intercepted',
       outOfStock: 'Out of Stock'
     },
     table: {
@@ -174,13 +176,28 @@ export default {
     }
   },
   status: {
-    inStock: 'In Stock',
-    pending: 'Pending',
-    outOfStock: 'Out of Stock',
-    inProgress: 'In Progress',
-    completed: 'Completed',
-    notInbound: 'Not Inbound',
-    unknown: 'Unknown'
+    // Package status
+    package: {
+      inStock: 'In Stock',
+      pending: 'Pending',
+      pendingIntercept: 'Pending Intercept',
+      intercepted: 'Intercepted',
+      outOfStock: 'Out of Stock',
+      unknown: 'Unknown'
+    },
+    // Inbound batch status
+    inboundBatch: {
+      pending: 'Pending',
+      inProgress: 'In Progress',
+      completed: 'Completed',
+      outboundInProgress: 'Outbound In Progress',
+      outboundCompleted: 'Outbound Completed'
+    },
+    // Outbound batch status
+    outboundBatch: {
+      inProgress: 'In Progress',
+      completed: 'Completed'
+    }
   },
   api: {
     error: {
@@ -216,5 +233,30 @@ export default {
       createdAt: 'Created At:',
       inboundProgress: 'Inbound Progress:'
     }
+  },
+  scan: {
+    title: 'Scan',
+    pointCamera: 'Place the QR code/barcode within the frame to scan automatically',
+    help: 'Supports QR codes and barcodes',
+    lightOn: 'Turn on flashlight',
+    lightOff: 'Turn off flashlight',
+    album: 'Select from album',
+    manualInput: 'Manual input',
+    enterCode: 'Please enter code',
+    scanSuccess: 'Scan successful',
+    scanFailed: 'Scan failed',
+    cameraPermissionDenied: 'Camera permission denied',
+    flashlightError: 'Flashlight operation failed',
+    albumNotSupported: 'Album scan not supported yet',
+    scanTimeout: 'Scan timeout, please try again'
+  },
+  voiceSetting: {
+    title: 'Voice Settings',
+    volume: 'Volume',
+    pitch: 'Pitch',
+    rate: 'Speed',
+    test: 'Test Voice',
+    testText: 'This is a voice test message',
+    testFailed: 'Voice test failed'
   }
 };

@@ -23,8 +23,8 @@ export default {
       outboundRecordsDesc: '管理所有出库批次',
       inboundRecords: '包裹记录',
       inboundRecordsDesc: '查看所有包裹记录',
-      inboundBatches: '入库批次',
-      inboundBatchesDesc: '管理所有入库批次'
+      inboundBatches: '入仓批次',
+      inboundBatchesDesc: '管理所有入仓批次'
     },
     stats: {
       title: '数据统计',
@@ -55,13 +55,16 @@ export default {
       cameraPermissionDenied: '摄像头权限被拒绝',
       cameraNotFound: '未找到摄像头设备',
       cameraNotSupported: '浏览器不支持摄像头功能',
+      notInBatch: '该单号不在入仓批次中，禁止入库',
   },
   packageRecords: {
     title: '包裹记录',
     filter: {
       all: '全部',
       inStock: '已入库',
-      pending: '待出库',
+      pending: '待入库',
+      pendingIntercept: '待拦截',
+      intercepted: '已拦截',
       outOfStock: '已出库'
     },
     table: {
@@ -174,13 +177,28 @@ export default {
     }
   },
   status: {
-    inStock: '已入库',
-    pending: '待出库',
-    outOfStock: '已出库',
-    inProgress: '入库中',
-    completed: '已完成',
-    notInbound: '待入库',
-    unknown: '未知'
+    // 包裹状态
+    package: {
+      inStock: '已入库',
+      pending: '待入库',
+      pendingIntercept: '待拦截',
+      intercepted: '已拦截',
+      outOfStock: '已出库',
+      unknown: '未知'
+    },
+    // 入仓批次状态
+    inboundBatch: {
+      pending: '待入仓',
+      inProgress: '入仓中',
+      completed: '已入仓',
+      outboundInProgress: '出仓中',
+      outboundCompleted: '已出仓'
+    },
+    // 出库批次状态
+    outboundBatch: {
+      inProgress: '出库中',
+      completed: '已出库'
+    }
   },
   api: {
     error: {
@@ -195,26 +213,57 @@ export default {
     }
   },
   inboundBatches: {
-    title: '入库批次',
-    batchDetail: '入库批次详情',
+    title: '入仓批次',
+    batchDetail: '入仓批次详情',
     batchNo: '批次号',
     status: '状态',
     createdAt: '创建时间',
-    inboundProgress: '入库进度',
+    inboundProgress: '入仓进度',
     channelProgress: '渠道进度',
     packageRecords: '包裹记录',
     noChannelInfo: '暂无渠道信息',
     noPackageRecords: '暂无包裹记录',
-    inboundProgressText: '入库进度: {current}/{total}',
-    pendingBatches: '待入库',
-    inProgressBatches: '入库中',
-    noPendingBatches: '暂无待入库批次',
-    noInProgressBatches: '暂无入库中批次',
+    inboundProgressText: '入仓进度: {current}/{total}',
+    pendingBatches: '待入仓',
+    inProgressBatches: '入仓中',
+    completedBatches: '已入仓',
+    outboundInProgressBatches: '出仓中',
+    outboundCompletedBatches: '已出仓',
+    noPendingBatches: '暂无待入仓批次',
+    noInProgressBatches: '暂无入仓中批次',
+    noCompletedBatches: '暂无已入仓批次',
+    noOutboundInProgressBatches: '暂无出仓中批次',
+    noOutboundCompletedBatches: '暂无已出仓批次',
     labels: {
       batchNo: '批次号:',
       status: '状态:',
       createdAt: '创建时间:',
-      inboundProgress: '入库进度:'
+      inboundProgress: '入仓进度:'
     }
+  },
+  scan: {
+    title: '扫一扫',
+    pointCamera: '将二维码/条码放入框内，即可自动扫描',
+    help: '支持二维码和一维码',
+    lightOn: '开启手电筒',
+    lightOff: '关闭手电筒',
+    album: '从相册选择',
+    manualInput: '手动输入',
+    enterCode: '请输入条码',
+    scanSuccess: '扫描成功',
+    scanFailed: '扫描失败',
+    cameraPermissionDenied: '摄像头权限被拒绝',
+    flashlightError: '手电筒操作失败',
+    albumNotSupported: '暂不支持相册扫描',
+    scanTimeout: '扫描超时，请重试'
+  },
+  voiceSetting: {
+    title: '语音设置',
+    volume: '音量',
+    pitch: '语调',
+    rate: '语速',
+    test: '测试语音',
+    testText: '这是一条语音测试消息',
+    testFailed: '语音测试失败'
   }
 };

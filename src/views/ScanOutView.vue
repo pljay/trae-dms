@@ -1,6 +1,5 @@
 <template>
   <div>
-    <TopBar :title="t('scanOut.title')" />
     <!-- 操作按钮 -->
     <div class="action-section">
       <var-button type="primary" @click="showBatchForm = true">{{ $t('outboundRecords.addBatch') }}</var-button>
@@ -100,7 +99,7 @@
   import { useI18n } from 'vue-i18n'
   import { Snackbar } from '@varlet/ui'
   import { useOutboundStore } from '@/stores/outbound'
-  import TopBar from '@/components/TopBar.vue'
+  import { useTitleStore } from '@/stores/title'
 
   const { t } = useI18n()
 
@@ -108,6 +107,8 @@
   const route = useRoute()
   const outboundStore = useOutboundStore()
   const formRef = ref()
+  const titleStore = useTitleStore()
+  titleStore.setTitle('scanOut.title')
 
   // 出库表单
   const outboundForm = reactive({

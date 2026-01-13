@@ -1,7 +1,29 @@
 <template>
-  <div class="barcode-scanner">
-    <!-- 统一使用卡片布局，包括原生和Web端 -->
-    <var-card shadow="hover">
+  <div class="barcode-scanner" :class="{ 'camera-active': showCamera && !isWebPlatform }">
+    <!-- 原生扫描模式 -->
+    <div v-if="showCamera && !isWebPlatform" class="scanner-wrapper">
+      <!-- 摄像头预览容器（全屏） -->
+      <div class="camera-preview-container"></div>
+      
+      <!-- 扫描覆盖层（居中显示扫描框） -->
+      <div class="scan-overlay">
+        <!-- 扫描框 -->
+        <div class="scan-frame">
+          <!-- 扫描线 -->
+          <div class="scan-line"></div>
+          <!-- 扫描提示文字 -->
+          <div class="scan-hint">{{ $t('scanIn.pointCamera') }}</div>
+          <!-- 四角边框 -->
+          <div class="scan-corner top-left"></div>
+          <div class="scan-corner top-right"></div>
+          <div class="scan-corner bottom-left"></div>
+          <div class="scan-corner bottom-right"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Web扫描和手动输入使用卡片布局 -->
+    <var-card shadow="hover" v-if="!showCamera || isWebPlatform">
       <!-- 摄像头预览（Web端） -->
       <div v-if="showCamera && isWebPlatform" class="scanner-container">
         <div class="web-scanner">
@@ -10,8 +32,6 @@
           <div class="scan-line"></div>
         </div>
       </div>
-      
-      <!-- 摄像头扫描（原生模式） -->
       
       <!-- 手动输入区域 -->
       <div v-else class="input-container">
@@ -47,7 +67,7 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Snackbar } from '@varlet/ui'
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner'
+import { BarcodeScanner, LensFacing, Resolution } from '@capacitor-mlkit/barcode-scanning'
 import { Capacitor } from '@capacitor/core'
 import { BrowserMultiFormatReader } from '@zxing/library'
 
@@ -82,6 +102,19 @@ let stream: MediaStream | null = null
 let scanning = false
 let barcodeReader: BrowserMultiFormatReader | null = null
 
+// 原生扫描相关变量
+const scanListeners = ref<any[]>([])
+
+// 空函数，保持接口一致
+const increaseBrightness = async () => {
+  // 移除了ScreenBrightness依赖，此函数变为空实现
+}
+
+// 空函数，保持接口一致
+const restoreBrightness = async () => {
+  // 移除了ScreenBrightness依赖，此函数变为空实现
+}
+
 // 切换扫描模式
 const toggleScannerMode = async () => {
   // 先停止当前扫描
@@ -89,7 +122,7 @@ const toggleScannerMode = async () => {
     if (isWebPlatform.value) {
       stopWebScan()
     } else {
-      await BarcodeScanner.stopScan()
+      await stopNativeScan()
     }
   }
   
@@ -98,6 +131,8 @@ const toggleScannerMode = async () => {
   
   // 如果切换到摄像头模式，启动扫描
   if (showCamera.value) {
+    // 提高亮度
+    await increaseBrightness()
     if (isWebPlatform.value) {
       startWebScan()
     } else {
@@ -136,7 +171,9 @@ const startWebScan = async () => {
     
     // 请求摄像头权限
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment' }
+      video: {
+        facingMode: 'environment'
+      }
     })
     
     // 设置视频源
@@ -217,7 +254,7 @@ const scanBarcode = async () => {
 }
 
 // 停止Web端扫描
-const stopWebScan = () => {
+const stopWebScan = async () => {
   scanning = false
   
   // 停止扫描循环
@@ -236,178 +273,138 @@ const stopWebScan = () => {
   if (videoRef.value) {
     videoRef.value.srcObject = null
   }
+  
+  // 恢复亮度
+  await restoreBrightness()
 }
 
 // 启动原生摄像头扫描
 const startNativeScan = async () => {
   try {
-    console.log('=== Barcode Scanner Debug ===')
-    console.log('1. Starting native scan')
-    console.log('1.1. showCamera value:', showCamera.value)
-    console.log('1.2. isWebPlatform value:', isWebPlatform.value)
-    
-    // 先确保摄像头已停止
-    console.log('1.5. Ensuring scanner is stopped')
-    try {
-      await BarcodeScanner.stopScan()
-      console.log('1.6. Scanner stopped successfully')
-    } catch (e) {
-      console.log('1.7. Scanner was already stopped, error:', e)
-    }
-    
-    // 确保背景已显示
-    console.log('1.8. Ensuring background is shown')
-    BarcodeScanner.showBackground()
-    console.log('1.9. Background shown')
-    
     // 请求摄像头权限
-    console.log('2. Checking camera permissions')
-    let permission = await BarcodeScanner.checkPermission()
-    console.log('3. Initial permission status:', permission)
-    console.log('3.1. permission.granted:', permission.granted)
+    const { camera } = await BarcodeScanner.requestPermissions()
     
-    if (!permission.granted) {
-      console.log('4. Requesting camera permissions')
-      permission = await BarcodeScanner.checkPermission({ force: true })
-      console.log('5. Permission after request:', permission)
-      console.log('5.1. permission.granted:', permission.granted)
-      
-      if (!permission.granted) {
-        console.log('6. Camera permission denied')
-        Snackbar({ type: 'error', content: t('scanIn.cameraPermissionDenied') })
-        emit('error', t('scanIn.cameraPermissionDenied'))
-        showCamera.value = false
-        return
-      }
+    if (camera !== 'granted') {
+      Snackbar({ type: 'error', content: t('scanIn.cameraPermissionDenied') })
+      showCamera.value = false
+      return
     }
-    
-    console.log('7. Camera permission granted')
-    
-    // 按照插件文档的要求：
-    // 1. 准备摄像头
-    // 2. 隐藏应用背景
-    // 3. 添加 scanner-active 类到 body
-    // 4. 启动扫描
-    
-    // 隐藏应用背景 - 这是关键，必须调用此方法才能显示摄像头画面
-    console.log('10. Hiding background')
-    BarcodeScanner.hideBackground()
-    console.log('10.1. Background hidden')
     
     // 添加 scanner-active 类到 body，确保摄像头画面能够显示
-    console.log('11. Adding scanner-active class to body')
     document.body.classList.add('scanner-active')
-    console.log('11.1. scanner-active class added, body classes:', document.body.classList)
-    console.log('11.2. Scanner-active class on body:', document.body.classList.contains('scanner-active'))
     
-    // 确保根元素背景为透明
-    console.log('12. Setting root background to transparent')
-    const rootElement = document.documentElement
-    rootElement.style.backgroundColor = 'transparent'
-    console.log('12.1. Root background set to transparent, current:', rootElement.style.backgroundColor)
-    
-    // 确保body背景也为透明
-    console.log('12.2. Setting body background to transparent')
-    document.body.style.backgroundColor = 'transparent'
-    console.log('12.3. Body background set to transparent, current:', document.body.style.backgroundColor)
-    
-    // 启动扫描 - 不设置特定尺寸，让插件自动匹配容器比例
-    // 使用所有支持的条码格式，提高识别成功率
-    console.log('13. Starting scan with all formats')
-    console.log('13.1. BarcodeScanner instance:', BarcodeScanner)
-    console.log('13.2. BarcodeScanner.startScan:', BarcodeScanner.startScan)
-    
-    try {
-      // 启动扫描
-      const result = await BarcodeScanner.startScan()
-      
-      console.log('14. Scan completed, result:', result)
-      console.log('14.1. Result type:', typeof result)
-      console.log('14.2. Result has content:', result && result.content)
-      console.log('14.3. Result content:', result && result.content)
-      console.log('14.4. Result:', JSON.stringify(result))
-      
-      // 扫描完成，处理结果
-      if (result && result.content) {
-        console.log('15. Scan result has content:', result.content)
-        emit('scan', result.content.trim())
-      } else {
-        console.log('15. Scan result has no content, result:', result)
-        // 扫描失败，可能是用户取消了扫描
-        emit('error', t('scanIn.scanFailed'))
+    // 添加条码扫描监听器
+    const barcodeListener = await BarcodeScanner.addListener('barcodesScanned', (event) => {
+      if (event.barcodes && event.barcodes.length > 0) {
+        // 检查每个条码是否在扫描框内
+        for (const barcode of event.barcodes) {
+          if (isBarcodeInScanFrame(barcode)) {
+            // 优先使用rawValue，如果没有则使用displayValue
+            const barcodeValue = barcode.rawValue || barcode.displayValue
+            if (barcodeValue) {
+              emit('scan', barcodeValue.trim())
+              Snackbar({ type: 'success', content: t('scanIn.scanSuccess') })
+              stopNativeScan()
+              return
+            }
+          }
+        }
       }
-    } catch (scanError: unknown) {
-      console.error('15. Scan failed with error:', scanError)
-      console.error('15.1. Scan error type:', typeof scanError)
-      console.error('15.2. Scan error message:', (scanError as Error).message)
-      console.error('15.3. Scan error stack:', (scanError as Error).stack)
-      emit('error', t('scanIn.scanFailed'))
-    }
-  } catch (error: unknown) {
-    console.error('=== Barcode Scanner Error ===', error)
-    console.error('Error type:', typeof error)
-    console.error('Error message:', (error as Error).message)
-    console.error('Error stack:', (error as Error).stack)
-    // 确保在错误情况下也能恢复UI
-    try {
-      console.log('Error recovery: Showing background')
-      BarcodeScanner.showBackground()
-      console.log('Error recovery: Removing scanner-active class')
-      document.body.classList.remove('scanner-active')
-      console.log('Error recovery: Restoring root background')
-      document.documentElement.style.backgroundColor = ''
-      console.log('Error recovery: Restoring body background')
-      document.body.style.backgroundColor = ''
-      console.log('Error recovery: Setting showCamera to false')
-      showCamera.value = false
-    } catch (e) {
-      console.error('Failed to restore UI on error:', e)
-    }
-    emit('error', t('scanIn.cameraInitFailed'))
-  } finally {
-    console.log('16. Cleaning up resources')
+    })
     
-    try {
-      // 停止扫描
-      console.log('17. Stopping scan')
-      await BarcodeScanner.stopScan()
-      console.log('17.1. Scan stopped successfully')
-      
-      // 显示应用背景
-      console.log('18. Showing background')
-      BarcodeScanner.showBackground()
-      console.log('18.1. Background shown')
-    } catch (stopError) {
-      console.error('Failed to stop scan:', stopError)
-    } finally {
-      // 移除 scanner-active 类
-      console.log('19. Removing scanner-active class from body')
-      document.body.classList.remove('scanner-active')
-      console.log('19.1. scanner-active class removed, body classes:', document.body.classList)
-      
-      // 恢复根元素背景
-      console.log('20. Restoring root background')
-      const rootElement = document.documentElement
-      rootElement.style.backgroundColor = ''
-      console.log('20.1. Root background restored, current:', rootElement.style.backgroundColor)
-      
-      // 恢复body背景
-      console.log('20.2. Restoring body background')
-      document.body.style.backgroundColor = ''
-      console.log('20.3. Body background restored, current:', document.body.style.backgroundColor)
-      
-      // 扫描完成后返回手动输入模式
-      console.log('21. Setting showCamera to false')
-      showCamera.value = false
-      console.log('21.1. showCamera set to false, current:', showCamera.value)
-      
-      // 显示扫描成功的提示
-      console.log('22. Showing success message')
-      // Snackbar({ type: 'success', content: t('scanIn.scanSuccess') })
-      
-      console.log('=== Barcode Scanner Debug End ===')
+    // 添加错误监听器
+    const errorListener = await BarcodeScanner.addListener('scanError', (event) => {
+      console.error('扫描错误:', event.message)
+      emit('error', t('scanIn.scanFailed'))
+      stopNativeScan()
+    })
+    
+    // 启动扫描 - 使用自定义扫描模式，而不是Google Barcode Scanner的现成界面
+    await BarcodeScanner.startScan({
+      lensFacing: 'BACK' as LensFacing,
+      resolution: Resolution['1280x720']
+    })
+    
+    // 存储监听器引用，以便稍后移除
+    scanListeners.value = [barcodeListener, errorListener]
+    
+    Snackbar({ type: 'success', content: t('scanIn.cameraStarted') })
+  } catch (error: unknown) {
+    console.error('启动扫描失败:', error)
+    // 确保在错误情况下也能恢复UI
+    stopNativeScan()
+    emit('error', t('scanIn.cameraInitFailed'))
+  }
+}
+
+// 停止原生扫描
+const stopNativeScan = async () => {
+  try {
+    // 停止扫描
+    await BarcodeScanner.stopScan()
+    
+    // 移除所有监听器
+    if (scanListeners.value.length > 0) {
+      for (const listener of scanListeners.value) {
+        await listener.remove()
+      }
+      scanListeners.value = []
+    }
+    
+    // 恢复亮度
+    await restoreBrightness()
+  } catch (error) {
+    console.error('停止扫描失败:', error)
+  } finally {
+    // 移除 scanner-active 类
+    document.body.classList.remove('scanner-active')
+    
+    // 扫描完成后返回手动输入模式
+    showCamera.value = false
+  }
+}
+
+// 检查条码是否在扫描框内
+const isBarcodeInScanFrame = (barcode: any): boolean => {
+  // 如果没有角点信息，默认认为条码在扫描框内
+  if (!barcode.cornerPoints) {
+    return true
+  }
+  
+  // 获取扫描框的位置和大小
+  const scanFrameElement = document.querySelector('.scan-frame')
+  if (!scanFrameElement) {
+    return true
+  }
+  
+  // 获取扫描框的边界
+  const frameRect = scanFrameElement.getBoundingClientRect()
+  const frameLeft = frameRect.left
+  const frameTop = frameRect.top
+  const frameRight = frameRect.right
+  const frameBottom = frameRect.bottom
+  
+  // 获取屏幕尺寸
+  const screenWidth = window.innerWidth
+  const screenHeight = window.innerHeight
+  
+  // 检查条码的所有角点是否在扫描框内
+  // 注意：cornerPoints坐标是基于摄像头画面的，需要转换为屏幕坐标
+  for (const point of barcode.cornerPoints) {
+    // 将摄像头坐标转换为屏幕坐标
+    // 假设摄像头画面是全屏的，需要根据实际情况调整
+    const screenX = (point[0] / screenWidth) * screenWidth
+    const screenY = (point[1] / screenHeight) * screenHeight
+    
+    // 检查点是否在扫描框内
+    if (screenX < frameLeft || screenX > frameRight || screenY < frameTop || screenY > frameBottom) {
+      // 只要有一个角点不在扫描框内，就认为条码不在扫描框内
+      return false
     }
   }
+  
+  // 所有角点都在扫描框内，认为条码在扫描框内
+  return true
 }
 
 // 手动输入处理
@@ -432,9 +429,9 @@ onMounted(() => {
 // 组件卸载前确保扫描已停止
 onBeforeUnmount(async () => {
   if (isWebPlatform.value) {
-    stopWebScan()
+    await stopWebScan()
   } else {
-    await BarcodeScanner.stopScan()
+    await stopNativeScan()
   }
 })
 </script>
@@ -444,6 +441,8 @@ onBeforeUnmount(async () => {
   max-width: 600px;
   margin: 0 auto;
   padding: 0 16px;
+  position: relative;
+  z-index: 1;
 }
 
 .card-header {
@@ -454,6 +453,174 @@ onBeforeUnmount(async () => {
   font-weight: 500;
 }
 
+/* 扫描器容器 */
+.scanner-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1; /* 确保导航栏可以显示在上方 */
+}
+
+/* 摄像头预览容器 */
+.camera-preview-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* 扫描覆盖层 */
+.scan-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  /* 使用矩形遮罩，更准确地显示扫描区域 */
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.7) 30%);
+}
+
+/* 扫描框 */
+.scan-frame {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  background-color: transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  pointer-events: none;
+  margin: auto;
+  z-index: 3;
+}
+
+/* 摄像头激活时的样式 */
+.barcode-scanner.camera-active {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* 扫描线效果 */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #00ff00, transparent);
+  animation: scanLine 2s infinite linear;
+  box-shadow: 0 0 15px 3px #00ff00;
+  z-index: 2;
+}
+
+@keyframes scanLine {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+/* 扫描提示文字 */
+.scan-hint {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+  animation: pulse 1.5s infinite;
+  z-index: 2;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+/* 四角边框 */
+.scan-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #00ff00;
+  z-index: 3;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+  animation: cornerFlash 2s infinite alternate;
+}
+
+@keyframes cornerFlash {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.scan-corner.top-left {
+  top: 10px;
+  left: 10px;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 5px 0 0 0;
+}
+
+.scan-corner.top-right {
+  top: 10px;
+  right: 10px;
+  border-left: none;
+  border-bottom: none;
+  border-radius: 0 5px 0 0;
+}
+
+.scan-corner.bottom-left {
+  bottom: 10px;
+  left: 10px;
+  border-right: none;
+  border-top: none;
+  border-radius: 0 0 0 5px;
+}
+
+.scan-corner.bottom-right {
+  bottom: 10px;
+  right: 10px;
+  border-left: none;
+  border-top: none;
+  border-radius: 0 0 5px 0;
+}
+
+/* Web扫描容器 */
 .scanner-container {
   position: relative;
   width: 100%;
@@ -465,36 +632,6 @@ onBeforeUnmount(async () => {
   box-shadow: inset 0 0 0 2px var(--border-color);
 }
 
-/* 确保原生扫描时相关元素背景透明 */
-body.scanner-active .scanner-container {
-  background-color: transparent !important;
-}
-
-body.scanner-active .native-scan-hint {
-  background-color: rgba(0, 0, 0, 0.5) !important;
-}
-
-/* 原生扫描容器样式，保持与Web版相同的UI */
-.native-scanner-container {
-  /* 移除全屏样式，使用默认卡片布局 */
-  display: none;
-}
-
-/* 原生扫描提示样式，保持与Web版相同的UI */
-.native-scan-hint {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: white;
-  font-size: 16px;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 10px;
-  border-radius: 8px;
-  margin: 0 20px;
-  z-index: 10;
-}
 
 .scanner-video {
   position: absolute;
@@ -503,34 +640,13 @@ body.scanner-active .native-scan-hint {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: brightness(1.3) contrast(1.1);
 }
 
 .scanner-canvas {
   position: absolute;
   top: 0;
   left: 0;
-}
-
-/* 扫描线效果 */
-.scan-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #00ff00, transparent);
-  animation: scanLine 2s infinite linear;
-  box-shadow: 0 0 10px 2px #00ff00;
-  z-index: 1;
-}
-
-@keyframes scanLine {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(100%);
-  }
 }
 
 .input-container {
@@ -545,9 +661,10 @@ body.scanner-active .native-scan-hint {
 /* 悬浮按钮容器 */
 .floating-button-container {
   position: fixed;
-  bottom:60px;
+  bottom: 60px;
   right: 20px;
   z-index: 1000;
+  pointer-events: auto; /* 确保按钮可以点击 */
 }
 
 /* 确保悬浮按钮有足够的触摸目标大小 */
@@ -558,35 +675,12 @@ body.scanner-active .native-scan-hint {
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: all 0.3s ease;
 }
 
-/* 原生扫描容器 */
-.native-scanner-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: transparent;
-  overflow: hidden;
-}
-
-/* 原生扫描提示 */
-.native-scan-hint {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: white;
-  font-size: 16px;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 10px;
-  border-radius: 8px;
-  margin: 0 20px;
-  z-index: 10;
+.floating-button-container :deep(.var-button):hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* 响应式设计 */
@@ -603,6 +697,10 @@ body.scanner-active .native-scan-hint {
   .input-container {
     margin-bottom: 15px;
   }
+  
+  .scan-frame {
+    width: 85%;
+  }
 }
 
 /* 小屏设备适配 */
@@ -611,8 +709,19 @@ body.scanner-active .native-scan-hint {
     padding: 0 8px;
   }
   
-  .action-buttons :deep(.var-button) {
-    width: 100%;
+  .scan-frame {
+    width: 90%;
+  }
+  
+  .floating-button-container {
+    bottom: 40px;
+    right: 15px;
+  }
+  
+  .floating-button-container :deep(.var-button) {
+    min-height: 52px;
+    min-width: 52px;
+    font-size: 14px;
   }
 }
 </style>

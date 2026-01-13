@@ -23,7 +23,7 @@ export function useScan() {
       scanCount.value++
       Snackbar({
         type: 'success',
-        content: t('scanIn.scanSuccess'),
+        content: t('scanIn.scanSuccess'), 
         duration: 2000
       })
       // 播放扫描成功语音

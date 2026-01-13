@@ -1,6 +1,5 @@
 <template>
   <div class="scan-operation-container">
-    <TopBar  :title="$t('scanOut.title')" />
     
     <!-- 返回按钮 -->
     <div class="back-section">
@@ -25,14 +24,40 @@
       </div>
     </var-card>
     
-    <!-- 扫描组件 -->
+    <!-- 扫描按钮 -->
     <div class="scanner-section">
-      <BarcodeScanner 
-        :title="$t('scanOut.step3.scan')" 
-        :autoStart="false"
-        @scan="(code) => handleScan(code, batchInfo.serialNumber)" 
-        @error="handleError" 
-      />
+      <var-card shadow="hover" class="scan-card">
+        <div class="scan-button-container">
+          <var-button
+            type="primary"
+            size="large"
+            :icon="'camera'"
+            @click="goToScan"
+          >
+            {{ $t('scanOut.step3.scan') }}
+          </var-button>
+          
+          <!-- 手动输入区域 -->
+          <div class="manual-input-section">
+            <var-input
+              v-model="manualInput"
+              :placeholder="$t('scanIn.manualInput')"
+              @keyup.enter="handleManualInput"
+              size="normal"
+              clearable
+            >
+            </var-input>
+            <var-button
+              type="success"
+              size="large"
+              @click="handleManualInput"
+              :disabled="!manualInput.trim()"
+            >
+              {{ $t('common.confirm') }}
+            </var-button>
+          </div>
+        </div>
+      </var-card>
     </div>
     
     <!-- 操作按钮 -->
@@ -47,21 +72,23 @@
 </template>
 
 <script setup lang="ts">
-import {  reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Snackbar } from '@varlet/ui'
 import { useOutboundStore } from '@/stores/outbound'
-import BarcodeScanner from '@/components/BarcodeScanner.vue'
 import { useScan } from '@/composables/useScan'
-import TopBar from '@/components/TopBar.vue'
+import { useTitleStore } from '@/stores/title'
 
 const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
 const outboundStore = useOutboundStore()
-const { scanCount: outboundCount, handleScan, handleError, completeOperation } = useScan()
+const { scanCount: outboundCount, handleScan, completeOperation } = useScan()
+const manualInput = ref<string>('')
+const titleStore = useTitleStore()
+titleStore.setTitle('scanOut.title')
 
 // 批次信息
 const batchInfo = reactive({
@@ -82,26 +109,56 @@ const verifyBatchNumber = (serialNumber: string) => {
   return false
 }
 
-// 检查路由参�?
+// 跳转到独立扫描页面
+const goToScan = () => {
+  router.push({
+    name: 'scan',
+    query: {
+      from: 'scan-operation',
+      callback: 'handleScan',
+      batchNumber: batchInfo.serialNumber
+    }
+  })
+}
+
+// 处理手动输入
+const handleManualInput = async () => {
+  if (manualInput.value.trim()) {
+    await handleScan(manualInput.value.trim(), batchInfo.serialNumber)
+    manualInput.value = ''
+  }
+}
+
+// 检查路由参�?和会话存储中的扫描结果
 onMounted(() => {
-  const batchNumber = route.query.batchNumber as string
-  if (batchNumber) {
-    if (!verifyBatchNumber(batchNumber)) {
+  // 检查会话存储中是否有扫描结果（从独立扫描页面返回）
+  const scanResultFromStorage = sessionStorage.getItem('scanResult')
+  if (scanResultFromStorage) {
+    // 清除会话存储中的扫描结果
+    sessionStorage.removeItem('scanResult')
+    // 处理扫描结果
+    handleScan(scanResultFromStorage, batchInfo.serialNumber)
+  } else {
+    // 检查路由参数
+    const batchNumber = route.query.batchNumber as string
+    if (batchNumber) {
+      if (!verifyBatchNumber(batchNumber)) {
+        Snackbar({
+          type: 'error',
+          content: t('scanOut.batchNotFound'),
+          duration: 2000
+        })
+        router.push('/scan-out')
+      } 
+    } else {
+      // 如果没有批次号参数，返回列表页    
       Snackbar({
         type: 'error',
         content: t('scanOut.batchNotFound'),
         duration: 2000
       })
       router.push('/scan-out')
-    } 
-  } else {
-    // 如果没有批次号参数，返回列表�?    
-    Snackbar({
-      type: 'error',
-      content: t('scanOut.batchNotFound'),
-      duration: 2000
-    })
-    router.push('/scan-out')
+    }
   }
 })
 
@@ -186,6 +243,37 @@ const goBack = () => {
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.scan-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.scan-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  gap: 20px;
+}
+
+.scan-button-container :deep(.var-button) {
+  min-height: 56px;
+  min-width: 200px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.manual-input-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.manual-input-section :deep(.var-input) {
+  margin-bottom: 10px;
 }
 
 .action-buttons {

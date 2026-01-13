@@ -229,12 +229,56 @@ export default {
 
   // 状态
   status: {
-    inStock: 'Auf Lager',
-    pending: 'Ausstehend',
-    outOfStock: 'Ausverkauft',
-    inProgress: 'In Bearbeitung',
-    completed: 'Abgeschlossen',
-    notInbound: 'Nicht eingegangen',
-    unknown: 'Unbekannt'
+    // 包裹状态
+    package: {
+      inStock: 'Auf Lager',
+      pending: 'Ausstehend',
+      pendingIntercept: 'Abfangwartung',
+      intercepted: 'Abgefangen',
+      outOfStock: 'Ausverkauft',
+      unknown: 'Unbekannt'
+    },
+    // 入仓批次状态
+    inboundBatch: {
+      pending: 'Ausstehend',
+      inProgress: 'In Bearbeitung',
+      completed: 'Abgeschlossen',
+      outboundInProgress: 'Ausgang in Bearbeitung',
+      outboundCompleted: 'Ausgang abgeschlossen'
+    },
+    // 出库批次状态
+    outboundBatch: {
+      inProgress: 'In Bearbeitung',
+      completed: 'Abgeschlossen'
+    }
+  },
+  
+  // 扫码页面
+  scan: {
+    title: 'Scan',
+    pointCamera: 'Platzieren Sie den QR-Code/Barcode im Rahmen, um automatisch zu scannen',
+    help: 'Unterstützt QR-Codes und Barcodes',
+    lightOn: 'Taschenlampe einschalten',
+    lightOff: 'Taschenlampe ausschalten',
+    album: 'Aus Album auswählen',
+    manualInput: 'Manuelle Eingabe',
+    enterCode: 'Bitte geben Sie den Code ein',
+    scanSuccess: 'Scan erfolgreich',
+    scanFailed: 'Scan fehlgeschlagen',
+    cameraPermissionDenied: 'Kameraberechtigung verweigert',
+    flashlightError: 'Taschenlampenoperation fehlgeschlagen',
+    albumNotSupported: 'Album-Scan wird derzeit nicht unterstützt',
+    scanTimeout: 'Scan-Timeout, bitte versuchen Sie es erneut'
+  },
+
+  // 语音设置
+  voiceSetting: {
+    title: 'Stimmeneinstellungen',
+    volume: 'Lautstärke',
+    pitch: 'Tonhöhe',
+    rate: 'Geschwindigkeit',
+    test: 'Stimme testen',
+    testText: 'Dies ist eine Stimmtestnachricht',
+    testFailed: 'Stimmtest fehlgeschlagen'
   }
 };

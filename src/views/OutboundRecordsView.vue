@@ -1,6 +1,5 @@
 <template>
   <div class="outbound-records-container">
-    <TopBar :title="t('outboundRecords.title')" />
     <!-- 搜索和筛选区域 -->
     <div class="search-filter-section">
       <!-- 搜索框-->
@@ -120,10 +119,12 @@
   import { useI18n } from 'vue-i18n';
   import { useOutboundStore } from '@/stores/outbound';
   import { OutboundStatus } from '@/types';
-  import TopBar from '@/components/TopBar.vue'
+  import { useTitleStore } from '@/stores/title'
 
   const { t } = useI18n();
   const outboundStore = useOutboundStore();
+  const titleStore = useTitleStore()  
+  titleStore.setTitle('outboundRecords.title')
 
   // 搜索和筛选相�?
   const searchKeyword = ref('');
@@ -188,15 +189,15 @@
     }
   };
 
-  // 获取状态文�?
+  // 获取状态文本
   const getStatusText = (status: string) => {
     switch (status) {
       case OutboundStatus.IN_PROGRESS:
-        return t('status.inProgress');
+        return t('status.outboundBatch.inProgress');
       case OutboundStatus.COMPLETED:
-        return t('status.completed');
+        return t('status.outboundBatch.completed');
       default:
-        return t('common.error');
+        return t('status.outboundBatch.unknown');
     }
   };
 

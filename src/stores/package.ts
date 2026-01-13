@@ -6,6 +6,7 @@ import {
   scanOutPackage,
   getPackagesByStatus
 } from '../api/package'
+import { getAllInboundBatches } from '../api/inbound'
 import { Snackbar } from '@varlet/ui'
 import i18n from '@/i18n'
 import voiceNotification from '@/utils/voiceNotification'
@@ -51,6 +52,21 @@ export const usePackageStore = defineStore('package', {
       this.loading = true
 
       try {
+        // 检查是否在入仓批次内
+        const inboundBatches = await getAllInboundBatches()
+        let isInBatch = false
+        for (const batch of inboundBatches) {
+          if (batch.packages && batch.packages.some(pkg => pkg.trackNo === trackNo)) {
+            isInBatch = true
+            break
+          }
+        }
+        
+        if (!isInBatch) {
+          this.scanError = { pkg: {} as Package, message: i18n.global.t('scanIn.notInBatch') }
+          return null
+        }
+        
         const scannedPackage = await scanInPackage(trackNo)
         console.log('Scanned package:', scannedPackage)
 

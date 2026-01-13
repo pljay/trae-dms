@@ -69,15 +69,26 @@ class VoiceNotification {
         textToSpeak = message;
       }
       
+      // 从本地存储获取用户设置
+      const savedVolume = parseFloat(localStorage.getItem('ttsVolume') || '1.0');
+      const savedPitch = parseFloat(localStorage.getItem('ttsPitch') || '1.0');
+      const savedRate = parseFloat(localStorage.getItem('ttsRate') || '2.0');
+      
       // 使用Capacitor文本转语音插件播放语音
       await TextToSpeech.speak({
         text: textToSpeak,
-        rate: 1.3, // 提高语速，减少播放时间
-        pitch: 1.0,
-        volume: 1.0
+        rate: savedRate, // 使用用户保存的语速
+        pitch: savedPitch, // 使用用户保存的语调
+        volume: savedVolume, // 使用用户保存的音量
+        lang: 'zh-CN' // 添加明确的语言代码
       });
     } catch (error) {
       console.error('Failed to speak:', error);
+      // 添加更详细的错误信息
+      if (error instanceof Error) {
+        console.error('TTS Error Message:', error.message);
+        console.error('TTS Error Stack:', error.stack);
+      }
     }
   }
 

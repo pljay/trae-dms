@@ -1,7 +1,5 @@
 <template>
   <div class="package-records-container">
-    <h1 class="page-title">{{ $t('packageRecords.title') }}</h1>
-
     <!-- 搜索和筛选区域 -->
     <div class="search-filter-section">
       <!-- 搜索框 -->
@@ -18,10 +16,13 @@
     </div>
     <!-- 状态筛选 -->
     <div class="filter-section">
-      <var-tabs v-model:active="activeTab" direction="horizontal">
+      <var-tabs elevation color="var(--color-primary)" active-color="var(--color-on-primary)"
+          inactive-color="var(--color-on-info)" v-model:active="activeTab" :safe-area="true">
         <var-tab name="all">{{ $t('packageRecords.filter.all') }}</var-tab>
         <var-tab name="in_stock">{{ $t('packageRecords.filter.inStock') }}</var-tab>
         <var-tab name="pending">{{ $t('packageRecords.filter.pending') }}</var-tab>
+        <var-tab name="pending_intercept">{{ $t('packageRecords.filter.pendingIntercept') }}</var-tab>
+        <var-tab name="intercepted">{{ $t('packageRecords.filter.intercepted') }}</var-tab>
         <var-tab name="out_of_stock">{{ $t('packageRecords.filter.outOfStock') }}</var-tab>
       </var-tabs>
     </div>
@@ -35,7 +36,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in getFilteredPackages('all')" :key="row.id">
+            <tr v-for="row in displayedPackages" :key="row.id">
               <td>{{ row.trackNo }}</td>
               <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
@@ -72,7 +73,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in getFilteredPackages('in_stock')" :key="row.id">
+            <tr v-for="row in displayedPackages" :key="row.id">
               <td>{{ row.trackNo }}</td>
               <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
@@ -101,7 +102,7 @@
         </div>
       </var-tab-item>
       <var-tab-item name="pending">
-        <!-- 待出库的内容 -->
+        <!-- 待入库的内容 -->
         <var-table>
           <thead style="position: sticky; top: 0">
             <tr>
@@ -109,7 +110,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in getFilteredPackages('pending')" :key="row.id">
+            <tr v-for="row in displayedPackages" :key="row.id">
               <td>{{ row.trackNo }}</td>
               <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
@@ -137,6 +138,80 @@
           <span>{{ $t('common.noData') }}</span>
         </div>
       </var-tab-item>
+      <var-tab-item name="pending_intercept">
+        <!-- 待拦截的内容 -->
+        <var-table>
+          <thead style="position: sticky; top: 0">
+            <tr>
+              <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in displayedPackages" :key="row.id">
+              <td>{{ row.trackNo }}</td>
+              <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
+              <td>{{ row.channel }}</td>
+              <td>{{ row.country }}</td>
+              <!-- <td>{{ row.weight }} kg</td>
+              <td>{{ row.length }}x{{ row.width }}x{{ row.height }} cm</td> -->
+              <td>{{ row.createdAt}}</td>
+            </tr>
+          </tbody>
+        </var-table>
+
+        <!-- 加载更多指示器 -->
+        <div v-if="hasMore" class="loading-more">
+          <var-loading type="circle"></var-loading>
+          <span>{{ $t('common.loading') }}</span>
+        </div>
+
+        <!-- 没有更多数据 -->
+        <div v-else-if="getFilteredPackages('pending_intercept').length > 0" class="no-more">
+          <span>{{ $t('common.noMoreData') }}</span>
+        </div>
+
+        <!-- 没有数据 -->
+        <div v-else class="no-data">
+          <span>{{ $t('common.noData') }}</span>
+        </div>
+      </var-tab-item>
+      <var-tab-item name="intercepted">
+        <!-- 已拦截的内容 -->
+        <var-table>
+          <thead style="position: sticky; top: 0">
+            <tr>
+              <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in displayedPackages" :key="row.id">
+              <td>{{ row.trackNo }}</td>
+              <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
+              <td>{{ row.channel }}</td>
+              <td>{{ row.country }}</td>
+              <!-- <td>{{ row.weight }} kg</td>
+              <td>{{ row.length }}x{{ row.width }}x{{ row.height }} cm</td> -->
+              <td>{{ row.createdAt}}</td>
+            </tr>
+          </tbody>
+        </var-table>
+
+        <!-- 加载更多指示器 -->
+        <div v-if="hasMore" class="loading-more">
+          <var-loading type="circle"></var-loading>
+          <span>{{ $t('common.loading') }}</span>
+        </div>
+
+        <!-- 没有更多数据 -->
+        <div v-else-if="getFilteredPackages('intercepted').length > 0" class="no-more">
+          <span>{{ $t('common.noMoreData') }}</span>
+        </div>
+
+        <!-- 没有数据 -->
+        <div v-else class="no-data">
+          <span>{{ $t('common.noData') }}</span>
+        </div>
+      </var-tab-item>
       <var-tab-item name="out_of_stock">
         <!-- 已出库的内容 -->
         <var-table>
@@ -146,7 +221,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in getFilteredPackages('out_of_stock')" :key="row.id">
+            <tr v-for="row in displayedPackages" :key="row.id">
               <td>{{ row.trackNo }}</td>
               <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
               <td>{{ row.channel }}</td>
@@ -174,6 +249,7 @@
           <span>{{ $t('common.noData') }}</span>
         </div>
       </var-tab-item>
+
     </var-tabs-items>
   </div>
 </template>
@@ -183,10 +259,13 @@
   import { useI18n } from 'vue-i18n'
   import { usePackageStore } from '@/stores/package'
   import { Package, PackageStatus } from '@/types'
+  import { useTitleStore } from '@/stores/title'
 
   const { t } = useI18n()
 
   const packageStore = usePackageStore()
+  const titleStore = useTitleStore()
+  titleStore.setTitle('packageRecords.title')
 
   // 搜索和筛选相关
   const searchKeyword = ref('')
@@ -300,6 +379,10 @@
         return 'success'
       case PackageStatus.PENDING:
         return 'warning'
+      case PackageStatus.PENDING_INTERCEPT:
+        return 'warning'
+      case PackageStatus.INTERCEPTED:
+        return 'danger'
       case PackageStatus.OUT_OF_STOCK:
         return 'info'
       default:
@@ -311,13 +394,17 @@
   const getStatusText = (status: string) => {
     switch (status) {
       case PackageStatus.IN_STOCK:
-        return t('status.inStock')
+        return t('status.package.inStock')
       case PackageStatus.PENDING:
-        return t('status.pending')
+        return t('status.package.pending')
+      case PackageStatus.PENDING_INTERCEPT:
+        return t('status.package.pendingIntercept')
+      case PackageStatus.INTERCEPTED:
+        return t('status.package.intercepted')
       case PackageStatus.OUT_OF_STOCK:
-        return t('status.outOfStock')
+        return t('status.package.outOfStock')
       default:
-        return t('common.error')
+        return t('status.package.unknown')
     }
   }
 

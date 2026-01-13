@@ -1,6 +1,5 @@
 <template>
   <div class="inbound-batch-detail">
-    <TopBar :title="$t('inboundBatches.batchDetail')" @back="handleBack" />
     <div class="content">
       <!-- 批次基本信息 -->
       <var-card class="batch-info-card">
@@ -132,9 +131,9 @@
 
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import TopBar from '@/components/TopBar.vue'
+import { useTitleStore } from '@/stores/title'
 import BottomNav from '@/components/BottomNav.vue'
 import { useInboundBatchStore } from '@/stores/inbound'
 import { formatDate as formatDateUtil } from '@/utils/dateFormat'
@@ -143,8 +142,9 @@ import { InboundStatus, PackageStatus } from '@/types'
 const { t } = useI18n()
 
 const inboundBatchStore = useInboundBatchStore()
-const router = useRouter()
 const route = useRoute()
+const titleStore = useTitleStore()
+titleStore.setTitle('inboundBatches.batchDetail')
 
 // 获取批次ID
 const batchId = computed(() => route.params.id as string)
@@ -157,9 +157,9 @@ const batchChannels = computed(() => inboundBatchStore.batchChannels)
 const batchPackages = computed(() => inboundBatchStore.batchPackages)
 
 // 返回上一页
-const handleBack = () => {
-  router.push('/inbound-batches')
-}
+// const handleBack = () => {
+//   router.push('/inbound-batches')
+// }
 
 // 获取状态标签类型
 const getStatusTagType = (status?: InboundStatus) => {

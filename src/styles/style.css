@@ -6,11 +6,62 @@ body {
   margin: 0 !important;
 }
 
+/* Barcode scanner styles */
+body.barcode-scanner-active {
+  --background: transparent;
+  --ion-background-color: transparent;
+  background-color: transparent;
+}
+
+
+/* Ensure all navigation elements are fully visible with proper colors */
+.barcode-scanner-active var-app-bar {
+  background-color: var(--color-body) !important;
+  color: var(--color-text) !important;
+  visibility: visible !important;
+  z-index: 9999 !important;
+}
+
+.barcode-scanner-active var-bottom-navigation {
+  background-color: var(--color-body) !important;
+  color: var(--color-text) !important;
+  visibility: visible !important;
+  z-index: 9999 !important;
+}
+
+/* Ensure the scan view is visible and has proper styling */
+.barcode-scanner-active .scan-view {
+  background-color: transparent;
+  visibility: visible !important;
+}
+
+/* Ensure dialogs are visible */
+.barcode-scanner-active .var-dialog {
+  visibility: visible;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .barcode-scanner-active .scan-view {
+    --background: transparent;
+    --ion-background-color: transparent;
+  }
+  
+  /* Ensure navigation elements have proper dark mode styling */
+  .barcode-scanner-active var-app-bar,
+  .barcode-scanner-active var-bottom-navigation {
+    background-color: var(--color-body) !important;
+    color: var(--color-text) !important;
+  }
+}
+
 
 /* 非登录页面添加底部间距 */
 .page-container:not(.login-page) {
-  padding-top: 60px; /* 为顶部导航预留空间 */
-  padding-bottom: 60px; /* 为底部导航预留空间 */
+  padding-top: var(--app-bar-height);
+  /* 为顶部导航预留空间 */
+  padding-bottom: var(--bottom-navigation-height);
+  /* 为底部导航预留空间 */
 }
 
 /* 登录页面移除底部间距 */
@@ -20,9 +71,3 @@ body {
   overflow: hidden !important;
   box-sizing: border-box !important;
 }
-
-
-
-
-
-
