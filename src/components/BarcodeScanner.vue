@@ -70,6 +70,7 @@ import { Snackbar } from '@varlet/ui'
 import { BarcodeScanner, LensFacing, Resolution } from '@capacitor-mlkit/barcode-scanning'
 import { Capacitor } from '@capacitor/core'
 import { BrowserMultiFormatReader } from '@zxing/library'
+import vibrationNotification from '@/utils/vibrationNotification'
 
 const { t } = useI18n()
 
@@ -235,6 +236,8 @@ const scanBarcode = async () => {
     const result = await barcodeReader.decodeFromVideoElement(videoRef.value)
     if (result && result.getText()) {
       console.log('Web端识别到条码:', result.getText())
+      // 添加震动反馈
+      vibrationNotification.vibrateSuccess()
       emit('scan', result.getText())
       Snackbar({ type: 'success', content: t('scanIn.scanSuccess') })
       stopWebScan()
@@ -302,6 +305,9 @@ const startNativeScan = async () => {
             // 优先使用rawValue，如果没有则使用displayValue
             const barcodeValue = barcode.rawValue || barcode.displayValue
             if (barcodeValue) {
+              // 添加震动反馈
+              vibrationNotification.vibrateSuccess()
+              
               emit('scan', barcodeValue.trim())
               Snackbar({ type: 'success', content: t('scanIn.scanSuccess') })
               stopNativeScan()

@@ -1,5 +1,5 @@
 <template>
-  <var-app-bar  fixed :show-text="true" :safe-area-top="true" z-index="9999">
+  <var-app-bar  fixed :show-text="true" :safe-area-top="true">
     {{$t(titleStore.getTitle())}}
     <!-- 左侧：主页按钮 -->
     <template #left v-if="!isLoginPage">

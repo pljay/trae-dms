@@ -1,5 +1,5 @@
 <template>
-  <div class="outbound-records-container">
+  <div class="view-content">
     <!-- 搜索和筛选区域 -->
     <div class="search-filter-section">
       <!-- 搜索框-->
@@ -17,120 +17,65 @@
       <!-- 状态筛选器 -->
       <div class="filter-section">
         <var-tabs elevation color="var(--color-primary)" active-color="var(--color-on-primary)"
-          inactive-color="var(--color-on-info)" v-model:active="activeTab" :safe-area="true" >
-          <var-tab name="all">{{ $t('outboundRecords.filter.all') }}</var-tab>
+          inactive-color="var(--color-on-info)" v-model:active="activeTab" :safe-area="true">
           <var-tab name="inProgress">{{ $t('outboundRecords.filter.inProgress') }}</var-tab>
           <var-tab name="completed">{{ $t('outboundRecords.filter.completed') }}</var-tab>
         </var-tabs>
-        <var-tabs-items v-model:active="activeTab" :can-swipe="false">
-          <var-tab-item name="all">
-            <div class="table-section">
-              <var-card shadow="hover">
-                <var-table>
-                  <thead style="position: sticky; top: 0">
-                    <tr>
-                      <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in getFilteredBatches('all')" :key="row.id">
-                      <td>{{ row.serialNumber }}</td>
-                      <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
-                      <td>{{ row.channel }}</td>
-                      <td>{{ row.quantity }}</td>
-                      <td>{{ formatDate(row.createdAt) }}</td>
-                      <td>{{ formatDate(row.updatedAt) }}</td>
-                    </tr>
-                  </tbody>
-                </var-table>
-
-                <!-- 没有数据 -->
-                <div v-if="getFilteredBatches('all').length === 0" class="no-data">
-                  <span>{{ $t('common.noData') }}</span>
-                </div>
-              </var-card>
-            </div>
-          </var-tab-item>
-          <var-tab-item name="inProgress">
-            <div class="table-section">
-              <var-card shadow="hover">
-                <var-table>
-                  <thead style="position: sticky; top: 0">
-                    <tr>
-                      <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in getFilteredBatches('in_progress')" :key="row.id">
-                      <td>{{ row.serialNumber }}</td>
-                      <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
-                      <td>{{ row.channel }}</td>
-                      <td>{{ row.quantity }}</td>
-                      <td>{{ formatDate(row.createdAt) }}</td>
-                      <td>{{ formatDate(row.updatedAt) }}</td>
-                    </tr>
-                  </tbody>
-                </var-table>
-
-                <!-- 没有数据 -->
-                <div v-if="getFilteredBatches('in_progress').length === 0" class="no-data">
-                  <span>{{ $t('common.noData') }}</span>
-                </div>
-              </var-card>
-            </div>
-          </var-tab-item>
-          <var-tab-item name="completed">
-            <div class="table-section">
-              <var-card shadow="hover">
-                <var-table>
-                  <thead style="position: sticky; top: 0">
-                    <tr>
-                      <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in getFilteredBatches('completed')" :key="row.id">
-                      <td>{{ row.serialNumber }}</td>
-                      <td ><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status) }}</var-chip></td>
-                      <td>{{ row.channel }}</td>
-                      <td>{{ row.quantity }}</td>
-                      <td>{{ formatDate(row.createdAt) }}</td>
-                      <td>{{ formatDate(row.updatedAt) }}</td>
-                    </tr>
-                  </tbody>
-                </var-table>
-
-                <!-- 没有数据 -->
-                <div v-if="getFilteredBatches('completed').length === 0" class="no-data">
-                  <span>{{ $t('common.noData') }}</span>
-                </div>
-              </var-card>
-            </div>
-          </var-tab-item>
-        </var-tabs-items>
       </div>
+      <var-table :scroller-height="tableScrollerHeight" ref="tableRef">
+        <thead style="position: sticky; top: 0">
+          <tr>
+            <th v-for="column in columns" :key="column.key" :width="column.width">{{ column.title }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in displayedBatches" :key="row.id">
+            <td>{{ row.serialNumber }}</td>
+            <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{
+              getStatusText(row.status)
+                }}</var-chip></td>
+            <td>{{ row.channelCode }}</td>
+            <td>{{ row.quantity }}</td>
+            <td>{{ formatDate(row.createdAt) }}</td>
+            <td>{{ formatDate(row.updatedAt) }}</td>
+          </tr>
+        </tbody>
+      </var-table>
     </div>
 
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, watch } from 'vue';
+  import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useOutboundStore } from '@/stores/outbound';
-  import { OutboundStatus } from '@/types';
+  import { OutboundStatus, OutboundBatch } from '@/types';
   import { useTitleStore } from '@/stores/title'
+  import { calculateRemainHeight } from '@/utils/calculateHeight'
+  import { Snackbar } from '@varlet/ui'
 
   const { t } = useI18n();
   const outboundStore = useOutboundStore();
-  const titleStore = useTitleStore()  
+  const titleStore = useTitleStore()
   titleStore.setTitle('outboundRecords.title')
 
-  // 搜索和筛选相�?
+  // 搜索和筛选相关
   const searchKeyword = ref('');
-  const activeTab = ref('all');
+  const activeTab = ref('inProgress');
+  const tableScrollerHeight = ref('')
 
-  // 表格列配�?
+  // 组件内部状态管理数据
+  const batches = ref<OutboundBatch[]>([])
+
+  // 分页加载相关
+  const currentPage = ref(1)
+  const pageSize = ref(20)
+  const hasMore = ref(true)
+  const noMore = ref(false)
+  const tableRef = ref<HTMLElement | null>(null)
+
+  // 表格列配置
   const columns = [
     { title: t('outboundRecords.table.serialNumber'), key: 'serialNumber', width: 200 },
     { title: t('outboundRecords.table.status'), key: 'status', width: 200 },
@@ -140,32 +85,148 @@
     { title: t('outboundRecords.table.updatedAt'), key: 'updatedAt', width: 180 },
   ];
 
-  // 根据状态和搜索关键词筛选出库批次
-  const getFilteredBatches = (status: string) => {
-    console.log(status);
-    let batches = outboundStore.getAllBatches;
-
-    // 状态筛选
-    if (status !== 'all') {
-      batches = batches.filter(batch => batch.status === status);
-    }
-
+  // 显示的批次列表
+  const displayedBatches = computed(() => {
+    let result = batches.value;
     // 搜索筛选
     if (searchKeyword.value) {
       const keyword = searchKeyword.value.toLowerCase();
-      batches = batches.filter(batch =>
+      result = result.filter(batch =>
         batch.serialNumber.toLowerCase().includes(keyword) ||
-        (batch.channel && batch.channel.toLowerCase().includes(keyword))
+        (batch.channelCode && (batch.channelCode as string).toLowerCase().includes(keyword))
       );
     }
 
-    return batches;
-  };
+    return result;
+  });
+
+  // 根据tab获取对应的状态
+  const getStatusFromTab = (tab: string): OutboundStatus | undefined => {
+    switch (tab) {
+      case 'inProgress':
+        return OutboundStatus.IN_PROGRESS
+      case 'completed':
+        return OutboundStatus.COMPLETED
+      default:
+        return undefined
+    }
+  }
+
+  // 加载数据
+  const loadData = async (currentPage: number, params?: Record<string, any>) => {
+    Snackbar["loading"]({
+      position: 'bottom',
+      content: t('common.loading'),
+      duration: 2000,
+      forbidClick: true,
+    })
+    const status = getStatusFromTab(activeTab.value)
+    let response: any
+    if (status === OutboundStatus.IN_PROGRESS) {
+      response = await outboundStore.fetchBatches(currentPage, pageSize.value, { status: '0', ...params })
+    } else if (status === OutboundStatus.COMPLETED) {
+      response = await outboundStore.fetchBatches(currentPage, pageSize.value, { status: '1', ...params })
+    }
+    response.records.forEach((item: OutboundBatch) => {
+      item.status = status as OutboundStatus
+    })
+    Snackbar.clear()
+    if (currentPage === 1) {
+      // 第一页数据，直接替换
+      batches.value = response.records || []
+    } else {
+      // 加载更多数据，追加
+      batches.value = [...batches.value, ...response.records || []]
+    }
+    hasMore.value = response.current < response.pages
+    noMore.value = !hasMore.value
+    if (noMore.value) {
+      Snackbar["warning"]({
+        position: 'bottom',
+        content: t('common.noMoreData'),
+        duration: 1000,
+        forbidClick: true,
+      })
+    }
+  }
+
+  // 加载初始数据
+  const loadInitialData = async () => {
+    batches.value = []
+    currentPage.value = 1
+    hasMore.value = true
+    try {
+      await loadData(currentPage.value)
+    } catch (error) {
+      console.error('Failed to load initial data:', error)
+    }
+  }
+
+  // 加载更多数据
+  const loadMore = async () => {
+    if (outboundStore.loading || !hasMore.value) return
+    currentPage.value++
+    try {
+      await loadData(currentPage.value)
+    } catch (error) {
+      console.error('Failed to load more data:', error)
+      currentPage.value--
+    }
+  }
+
+  // 计算表格自适应高度
+  const calculateTableHeight = () => {
+    const height = calculateRemainHeight(['.search-section', '.filter-section'])
+    tableScrollerHeight.value = height + 'px'
+  }
+
+  // 监听窗口大小变化
+  const handleResize = () => {
+    calculateTableHeight()
+  }
+
+  // 滚动事件处理
+  const handleScroll = (event: Event) => {
+    // 先检查加载状态和是否有更多数据
+    if (outboundStore.loading || noMore.value) {
+      return
+    }
+
+    const target = event.target as HTMLElement
+    if (!target) return
+
+    const { scrollTop, clientHeight, scrollHeight } = target
+
+    // 计算滚动百分比
+    const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100
+
+    // 当滚动到80%时触发加载
+    if (scrollPercentage >= 80) {
+      loadMore()
+    }
+  }
+
 
   // 处理搜索
-  const handleSearch = () => {
-    // 搜索时重置显示数�?
-  };
+  const handleSearch = async () => {
+    if (searchKeyword.value) {
+      batches.value = []
+      currentPage.value = 1
+      hasMore.value = true
+      try {
+        await loadData(currentPage.value, { serialNumber: searchKeyword.value })
+      } catch (error) {
+        console.error('Failed to search:', error)
+      }
+    } else {
+      await loadInitialData()
+    }
+  }
+
+  // 监听activeTab变化，重新加载数据
+  watch(activeTab, () => {
+    loadInitialData()
+  })
 
   // 监听搜索关键词变化，延迟搜索
   watch(searchKeyword, (newVal, oldVal) => {
@@ -201,7 +262,7 @@
     }
   };
 
-  // 格式化日�?
+  // 格式化日期
   const formatDate = (date?: string | Date) => {
     if (!date) return '';
     // 将字符串转换为Date对象
@@ -215,22 +276,42 @@
     });
   };
 
-  // 生命周期钩子
+  // 组件挂载时设置
   onMounted(async () => {
-    // 初始化outboundStore数据
-    await outboundStore.initData();
-  });
+    await loadInitialData()
+    calculateTableHeight()
 
-  // // 监听标签切换
-  // const handleTabChange = async () => {
-  //   // 标签切换时自动刷新数�? 
-  //   await outboundStore.initData();
-  // };
+    // 添加窗口大小变化监听
+    window.addEventListener('resize', handleResize)
+    // 组件挂载后添加滚动事件监听
+    nextTick(() => {
+      if (tableRef.value) {
+        // 获取var-table的DOM元素
+        const tableElement = (tableRef.value as any).$el || tableRef.value
+        // 查找var-table内部的滚动容器
+        const scrollContainer = tableElement.querySelector('.var-table__main') as HTMLElement || tableElement
+        scrollContainer.addEventListener('scroll', handleScroll)
+      }
+    })
+  })
+
+  // 组件卸载时清除滚动事件监听
+  onUnmounted(() => {
+    console.log('Unmounted')
+    if (tableRef.value) {
+      // 获取var-table的DOM元素
+      const tableElement = (tableRef.value as any).$el || tableRef.value
+      // 查找var-table内部的滚动容器
+      const scrollContainer = tableElement.querySelector('.var-table__main') as HTMLElement || tableElement
+      scrollContainer.removeEventListener('scroll', handleScroll)
+    }
+    // 移除窗口大小变化监听
+    window.removeEventListener('resize', handleResize)
+  })
 </script>
 
 <style scoped lang="css">
   .outbound-records-container {
-    padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
   }
@@ -249,6 +330,96 @@
 
   .filter-section {
     margin-bottom: 30px;
+  }
+  .scanner-section {
+    margin-bottom: 30px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .scan-card {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .scan-button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    gap: 20px;
+  }
+
+  .scan-button-container :deep(.var-button) {
+    min-height: 56px;
+    min-width: 200px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .manual-input-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .manual-input-section :deep(.var-input) {
+    margin-bottom: 10px;
+  }
+
+  .loading-more,
+  .no-more,
+  .no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #999;
+    gap: 8px;
+  }
+
+  .no-more {
+    color: #666;
+  }
+
+  .no-data {
+    color: #999;
+  }
+
+  :deep(.var-table) {
+    background: var(--surface-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  :deep(.var-table thead) {
+    background: var(--background-color);
+  }
+
+  :deep(.var-table th) {
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 12px 16px;
+  }
+
+  :deep(.var-table td) {
+    padding: 12px 16px;
+  }
+
+  :deep(.var-table tbody tr:hover) {
+    background: var(--background-color);
+  }
+
+  /* 透明化snackbar样式 */
+  :deep(.transparent-snackbar) {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    padding: 12px 16px;
   }
 
 </style>

@@ -1,49 +1,81 @@
 import { defineStore } from 'pinia'
 import { InboundBatch, InboundBatchChannel, InboundStatus } from '../types'
-import { 
-  getAllInboundBatches, 
-  getInboundBatchById, 
-  getInboundBatchChannels,
-  getInboundBatchPackages
+import {
+  getAllInboundBatches,
+  getInboundBatchById,
+  getInboundBatchChannels
 } from '../api/inbound'
+import { useChannelStore } from '../stores/channel'
 import { Snackbar } from '@varlet/ui'
 import i18n from '@/i18n'
+const channelStore = useChannelStore()
 
 export const useInboundBatchStore = defineStore('inboundBatch', {
   state: () => ({
-    batches: [] as InboundBatch[],
     currentBatch: null as InboundBatch | null,
     batchChannels: [] as InboundBatchChannel[],
-    batchPackages: [] as any[],
     loading: false
   }),
-  
+
   getters: {
-    allBatches: (state) => state.batches,
-    completedBatches: (state) => state.batches.filter(batch => batch.status === InboundStatus.COMPLETED),
-    inProgressBatches: (state) => state.batches.filter(batch => batch.status === InboundStatus.IN_PROGRESS),
-    pendingBatches: (state) => state.batches.filter(batch => batch.status === InboundStatus.PENDING)
+    // 获取入库进度百分比
+    getInboundProgress: () => (batch: InboundBatch) => {
+      if (batch.expectedQuantity === 0) return 0
+      return Math.round((batch.inboundQuantity / batch.expectedQuantity) * 100)
+    },
+
+    // 获取出库进度百分比
+    getOutboundProgress: () => (batch: InboundBatch) => {
+      if (!batch || batch.expectedQuantity === 0) return 0
+      return Math.min(100, Math.round((batch.outboundQuantity / batch.expectedQuantity) * 100))
+    },
+
+    // 获取渠道入仓进度百分比，基于实际包裹数据
+    getChannelInboundProgress: () => (channel: any) => {
+      if (!channel || channel.expectedQuantity === 0) return 0
+      return Math.min(100, Math.round((channel.inboundQuantity / channel.expectedQuantity) * 100))
+    },
+
+    // 获取渠道出仓进度百分比，基于实际包裹数据
+    getChannelOutboundProgress: () => (channel: any) => {
+      if (!channel || channel.expectedQuantity === 0) return 0
+      return Math.round((channel.outboundQuantity / channel.expectedQuantity) * 100)
+    }
   },
-  
+
   actions: {
-    // 初始化数据 - 从API获取所有入库批次
-    async initData() {
+    // 获取所有入库批次
+    async fetchBatches(page: number, pageSize: number, status?: InboundStatus) {
       this.loading = true
       try {
-        const batches = await getAllInboundBatches()
-        console.log('Fetched inbound batches:', batches)
-        this.batches = batches
+        const response = await getAllInboundBatches(page, pageSize, status)
+        response.records.forEach(batch => {
+           switch (batch.status) {
+             case '1':
+               batch.inboundStatus = InboundStatus.PENDING
+               break
+             case '2':
+               batch.inboundStatus = InboundStatus.IN_PROGRESS
+               break
+             case '3':
+               batch.inboundStatus = InboundStatus.COMPLETED
+               break
+             default:
+               break
+           }
+        })
+        return response
       } catch (error) {
         console.error('Failed to fetch inbound batches:', error)
         Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
+        throw error
       } finally {
         this.loading = false
       }
     },
-    
+
     // 获取入库批次详情
     async fetchBatchById(id: string) {
-      
       this.loading = true
       try {
         const batch = await getInboundBatchById(id)
@@ -55,12 +87,16 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
         this.loading = false
       }
     },
-    
+
     // 获取入库批次渠道进度
     async fetchBatchChannels(id: string) {
       this.loading = true
       try {
         const channels = await getInboundBatchChannels(id)
+        channels.forEach(channel => {
+          const channelInfo = channelStore.getChannelById(channel.channelId)
+          channel.channelCode = channelInfo?.code || channelInfo?.name||""
+        })
         this.batchChannels = channels
       } catch (error) {
         console.error('Failed to fetch batch channels:', error)
@@ -68,32 +104,12 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
       } finally {
         this.loading = false
       }
-      
-      // 同时获取包裹记录
-      this.fetchBatchPackages(id)
     },
-    
-    // 获取入库批次包裹记录
-    async fetchBatchPackages(id: string) {
-      try {
-        const packages = await getInboundBatchPackages(id)
-        this.batchPackages = packages
-      } catch (error) {
-        console.error('Failed to fetch batch packages:', error)
-        Snackbar({ type: 'error', content: i18n.global.t('api.error.serverError') })
-      }
-    },
-    
-    // 获取入库进度百分比
-    getInboundProgress(batch: InboundBatch): number {
-      if (batch.expectedQuantity === 0) return 0
-      return Math.round((batch.inboundQuantity / batch.expectedQuantity) * 100)
-    },
-    
+
     // 获取渠道入库进度百分比
     getChannelProgress(channel: InboundBatchChannel): number {
-      if (channel.expectedQuantity === 0) return 0
-      return Math.round((channel.inboundQuantity / channel.expectedQuantity) * 100)
+      if (channel.expectQuantity === 0) return 0
+      return Math.min(100, Math.round((channel.inboundQuantity / channel.expectQuantity) * 100))
     }
   }
 })

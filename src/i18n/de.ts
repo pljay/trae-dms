@@ -59,7 +59,14 @@ export default {
     cameraStarted: 'Kamera gestartet',
     cameraPermissionDenied: 'Kameraberechtigung verweigert',
     cameraNotFound: 'Kamera nicht gefunden',
-    cameraNotSupported: 'Kamera nicht unterstützt'
+    cameraNotSupported: 'Kamera nicht unterstützt',
+    notInBatch: 'Diese Sendungsnummer ist nicht im Eingangslot enthalten, Lagerung verboten',
+    notForecast: 'Nicht prognostizierte Sendung, direkt abgefangen',
+    alreadyInStock: 'Bereits auf Lager, doppelte Lagerung',
+    pendingIntercept: 'Abgefangen',
+    alreadyIntercepted: 'Bereits abgefangen, doppelt abgefangen',
+    invalidParams: 'Ungültige Parameter',
+    invalidStatus: 'Status {status}, kann nicht erneut gelagert werden'
   },
 
   // 包裹记录
@@ -69,7 +76,10 @@ export default {
       all: 'Alle',
       inStock: 'Auf Lager',
       pending: 'Ausstehend',
-      outOfStock: 'Ausverkauft'
+      pendingIntercept: 'Abfangwartung',
+      intercepted: 'Abgefangen',
+      outOfStock: 'Ausverkauft',
+      hold: 'Zur Bearbeitung'
     },
     table: {
       trackNo: 'Sendungsnummer',
@@ -196,6 +206,7 @@ export default {
     status: 'Status',
     createdAt: 'Erstellt am',
     inboundProgress: 'Eingangsprogression',
+    outboundProgress: 'Ausgangsprogression',
     channelProgress: 'Kanalprogression',
     packageRecords: 'Sendungsaufzeichnungen',
     noChannelInfo: 'Keine Kanalinformationen',
@@ -203,8 +214,14 @@ export default {
     inboundProgressText: 'Eingangsprogression: {current}/{total}',
     pendingBatches: 'Ausstehende Lots',
     inProgressBatches: 'Lots in Bearbeitung',
+    completedBatches: 'Abgeschlossene Lots',
+    outboundInProgressBatches: 'Ausgang in Bearbeitung Lots',
+    outboundCompletedBatches: 'Ausgang abgeschlossen Lots',
     noPendingBatches: 'Keine ausstehenden Lots',
     noInProgressBatches: 'Keine Lots in Bearbeitung',
+    noCompletedBatches: 'Keine abgeschlossenen Lots',
+    noOutboundInProgressBatches: 'Keine Lots mit ausstehender Ausgangsverarbeitung',
+    noOutboundCompletedBatches: 'Keine Lots mit abgeschlossener Ausgangsverarbeitung',
     labels: {
       batchNo: 'Lotnummer:',
       status: 'Status:',
@@ -244,7 +261,8 @@ export default {
       inProgress: 'In Bearbeitung',
       completed: 'Abgeschlossen',
       outboundInProgress: 'Ausgang in Bearbeitung',
-      outboundCompleted: 'Ausgang abgeschlossen'
+      outboundCompleted: 'Ausgang abgeschlossen',
+      unknown: 'Unbekannt'
     },
     // 出库批次状态
     outboundBatch: {

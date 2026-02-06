@@ -6,10 +6,13 @@ import router from './router'
 import i18n from './i18n'
 import App from './App.vue'
 import './styles/style.css'
-import { initializeAppData } from './utils/init'
-import { setupProdMockServer } from './mock'
 import { Themes, StyleProvider } from '@varlet/ui'
 import 'default-passive-events'
+
+// 设置应用标题
+if (import.meta.env.VITE_APP_TITLE) {
+  document.title = import.meta.env.VITE_APP_TITLE
+}
 
 // Set default theme first
 StyleProvider(Themes.md3Light)
@@ -36,5 +39,10 @@ app.use(i18n)
 
 // Initialize application data after mounting
 app.mount('#app')
-initializeAppData()
-setupProdMockServer()
+
+// Import and call initialize function
+export const initializeApp = async () => {
+  const { initializeAppData } = await import('./utils/init')
+  await initializeAppData()
+}
+

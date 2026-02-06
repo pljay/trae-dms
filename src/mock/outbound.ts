@@ -1,59 +1,17 @@
 import { MockMethod } from 'vite-plugin-mock'
 import { faker } from '@faker-js/faker'
-
-// 出库批次状态枚举
-const OutboundStatus = {
-  IN_PROGRESS: 'in_progress',
-  COMPLETED: 'completed'
-}
-
-// 渠道列表，更真实的渠道名称
-const channels = ['USPS', 'UPS', 'DHL', 'FedEx', 'EMS', 'SF Express', 'YTO Express', 'ZTO Express', 'Aramex', 'DPEX']
-
-// 生成随机出库批次号
-const generateBatchSerialNumber = () => {
-  const year = new Date().getFullYear()
-  // 使用faker生成更真实的批次号，格式如 OB20261234
-  const random = faker.string.numeric({ length: 4, exclude: ['0'] })
-  return `OB${year}${random}`
-}
-
-// 模拟出库批次数据
-const mockOutboundBatches = Array.from({ length: 15 }, (_, i) => {
-  // 随机生成状态
-  const status = faker.helpers.arrayElement(Object.values(OutboundStatus))
-  
-  // 生成创建时间，过去30天内
-  const createdAt = faker.date.past({ refDate: new Date() })
-  
-  // 生成更新时间，根据状态决定
-  const updatedAt = status === OutboundStatus.COMPLETED 
-    ? faker.date.between({ from: createdAt, to: new Date() })
-    : createdAt
-  
-  // 生成数量，根据状态决定范围
-  const quantity = faker.number.int({
-    min: status === OutboundStatus.COMPLETED ? 50 : 10,
-    max: status === OutboundStatus.COMPLETED ? 200 : 100
-  })
-  
-  return {
-    id: i + 1,
-    serialNumber: generateBatchSerialNumber(),
-    channel: faker.helpers.arrayElement(channels),
-    quantity,
-    status,
-    createdAt: createdAt.toISOString(),
-    updatedAt: updatedAt.toISOString()
-  }
-})
+// 引入数据类型，确保类型安全
+import { OutboundStatus, ErrorCode } from '../types/index'
+// 导入全局模拟数据
+import { mockOutboundBatches } from './global'
 
 // 统一响应格式
-const responseHandler = (data: any, message = 'success', code = 200) => {
+const responseHandler = (data: any, message = 'success', code = 200, errorCode?: number) => {
   return {
     code,
     message,
-    data
+    data,
+    errorCode
   }
 }
 
@@ -69,10 +27,20 @@ const paginate = (data: any[], page: number, pageSize: number) => {
   }
 }
 
+// 生成随机出库批次号
+const generateBatchSerialNumber = () => {
+  const year = new Date().getFullYear()
+  // 使用faker生成更真实的批次号，格式如 OB20261234
+  const random = faker.string.numeric({ length: 4, exclude: ['0'] })
+  return `OB${year}${random}`
+}
+
+export { mockOutboundBatches, generateBatchSerialNumber }
+
 export default [
   // 获取所有出库批次（支持分页和搜索）
   {
-    url: '/api/outbound/batches',
+    url: '/oll-boot/api/dms/outbound/batch',
     method: 'get',
     response: ({ query }: { query: { page?: number, pageSize?: number, serialNumber?: string, status?: string, channel?: string } }) => {
 
@@ -90,7 +58,7 @@ export default [
       
       // 按渠道筛选
       if (query.channel) {
-        filtered = filtered.filter(item => item.channel === query.channel)
+        filtered = filtered.filter(item => item.channelId === query.channel)
       }
       
       // 分页
@@ -102,7 +70,7 @@ export default [
   
   // 根据流水号获取出库批次
   {
-    url: '/api/outbound/batches/:serialNumber',
+    url: '/oll-boot/api/dms/outbound/batch/:serialNumber',
     method: 'get',
     response: (config: any) => {
       const { params = {} } = config
@@ -110,37 +78,38 @@ export default [
       const batch = mockOutboundBatches.find(item => item.serialNumber === serialNumber)
       
       if (!batch) {
-        return responseHandler(null, '出库批次不存在', 404)
+        return responseHandler(null, '出库批次不存在', 404, ErrorCode.NOT_FOUND)
       }
       
       return responseHandler(batch)
     }
   },
   
-  // 创建新的出库批次
+  // 创建出库批次
   {
-    url: '/api/outbound/batches',
+    url: '/oll-boot/api/dms/outbound/batch',
     method: 'post',
     response: (config: any) => {
       const { body } = config
       if (!body || !body.channel) {
-        return responseHandler(null, '缺少必填参数', 400)
+        return responseHandler(null, '缺少必填参数', 400, ErrorCode.INVALID_PARAMS)
       }
       
       // 检查批次号是否已存在
       if (body.serialNumber) {
         const existingBatch = mockOutboundBatches.find(item => item.serialNumber === body.serialNumber)
         if (existingBatch) {
-          return responseHandler(null, '批次号已存在', 409)
+          return responseHandler(null, '批次号已存在', 409, ErrorCode.INVALID_PARAMS)
         }
       }
       
       const newBatch = {
-        id: mockOutboundBatches.length + 1,
+        id: (mockOutboundBatches.length + 1).toString(),
         serialNumber: body.serialNumber || generateBatchSerialNumber(),
-        channel: body.channel,
+        channelId: body.channel,
         quantity: 0,
         status: OutboundStatus.IN_PROGRESS,
+        packages: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -152,7 +121,7 @@ export default [
   
   // 更新出库批次数量
   {
-    url: '/api/outbound/batches/:serialNumber/quantity',
+    url: '/oll-boot/api/dms/outbound/batch/:serialNumber/quantity',
     method: 'put',
     response: (config: any) => {
       const { params = {}, body = {} } = config
@@ -177,7 +146,7 @@ export default [
   
   // 完成出库批次
   {
-    url: '/api/outbound/batches/:serialNumber/complete',
+    url: '/oll-boot/api/dms/outbound/batch/:serialNumber/complete',
     method: 'put',
     response: (config: any) => {
       const { params = {} } = config
@@ -185,7 +154,7 @@ export default [
       const batch = mockOutboundBatches.find(item => item.serialNumber === serialNumber)
       
       if (!batch) {
-        return responseHandler(null, '出库批次不存在', 404)
+        return responseHandler(null, '出库批次不存在', 404, ErrorCode.NOT_FOUND)
       }
       
       if (batch.status === OutboundStatus.COMPLETED) {
@@ -201,7 +170,7 @@ export default [
   
   // 更新出库批次渠道
   {
-    url: '/api/outbound/batches/:serialNumber/channel',
+    url: '/oll-boot/api/dms/outbound/batch/:serialNumber/channel',
     method: 'put',
     response: (config: any) => {
       const { params = {}, body = {} } = config
@@ -209,15 +178,15 @@ export default [
       const { channel } = body
       
       if (!channel) {
-        return responseHandler(null, '缺少渠道参数', 400)
+        return responseHandler(null, '缺少渠道参数', 400, ErrorCode.INVALID_PARAMS)
       }
       
       const batch = mockOutboundBatches.find(item => item.serialNumber === serialNumber)
       if (!batch) {
-        return responseHandler(null, '出库批次不存在', 404)
+        return responseHandler(null, '出库批次不存在', 404, ErrorCode.NOT_FOUND)
       }
       
-      batch.channel = channel
+      batch.channelId = channel
       batch.updatedAt = new Date().toISOString()
       
       return responseHandler(batch, '渠道更新成功')

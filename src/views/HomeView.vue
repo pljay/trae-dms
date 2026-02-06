@@ -1,5 +1,6 @@
 <template>
-  <div class="home-container">
+  <div class="view-content">
+    <div :style="{ height: calculateViewHeight() + 'px', overflowY: 'auto', border: '1px solid #eee', padding: '10px' }">
     <!-- 功能模块 -->
     <div class="function-modules">
       <var-row :gutter="[10, 10]">
@@ -16,9 +17,9 @@
           </var-card>
         </var-col>
 
-        <!-- 入库记录 -->
+        <!-- 包裹记录 -->
         <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-          <var-card shadow="hover" class="module-card" @click="navigateTo('/inbound-records')">
+          <var-card shadow="hover" class="module-card" @click="navigateTo('/package-records')">
             <div class="module-content">
               <div class="module-icon in-icon">
                 <var-icon name="format-list-checkbox" :size="48" />
@@ -76,72 +77,62 @@
       <var-card shadow="hover">
         <h2 class="stats-title">{{ $t('home.stats.title') }}</h2>
         <var-row :gutter="[12, 12]">
-          <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+          <var-col :xs="24" :sm="24" :md="6" :lg="6" :xl="6">
             <div class="stat-card stat-total">
               <div class="stat-header">
                 <var-icon name="package-variant-closed" :size="28" />
-                <span class="stat-label">{{ $t('home.stats.totalPackages') }}</span>
+                <span class="stat-label">总包裹数</span>
               </div>
               <div class="stat-body">
                 <div class="stat-number">{{ totalPackages }}</div>
-                <div class="stat-progress">
-                  <var-progress :value="100" :show-value="false" track-color="#e8e8e8" color="#667eea" />
-                </div>
               </div>
             </div>
           </var-col>
-          <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+          <var-col :xs="24" :sm="24" :md="6" :lg="6" :xl="6">
             <div class="stat-card stat-instock">
               <div class="stat-header">
                 <var-icon name="check-circle" :size="28" />
-                <span class="stat-label">{{ $t('home.stats.inStock') }}</span>
+                <span class="stat-label">已入库</span>
               </div>
               <div class="stat-body">
                 <div class="stat-number">{{ inStockPackages }}</div>
-                <div class="stat-progress">
-                  <var-progress :value="getInStockPercentage" :show-value="false" track-color="#e8e8e8"
-                    color="#00b894" />
-                </div>
               </div>
               <div class="stat-footer">
                 <var-chip type="success" size="small">{{ getInStockPercentage.toFixed(1) }}%</var-chip>
               </div>
             </div>
           </var-col>
-          <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+          <var-col :xs="24" :sm="24" :md="6" :lg="6" :xl="6">
+            <div class="stat-card stat-intercepted">
+              <div class="stat-header">
+                <var-icon name="alert-circle" :size="28" />
+                <span class="stat-label">已拦截</span>
+              </div>
+              <div class="stat-body">
+                <div class="stat-number">{{ interceptedPackages }}</div>
+              </div>
+              <div class="stat-footer">
+                <var-chip type="danger" size="small">{{ getInterceptedPercentage.toFixed(1) }}%</var-chip>
+              </div>
+            </div>
+          </var-col>
+          <var-col :xs="24" :sm="24" :md="6" :lg="6" :xl="6">
             <div class="stat-card stat-pending">
               <div class="stat-header">
                 <var-icon name="clock-outline" :size="28" />
-                <span class="stat-label">{{ $t('home.stats.pending') }}</span>
+                <span class="stat-label">待处理</span>
               </div>
               <div class="stat-body">
                 <div class="stat-number">{{ pendingPackages }}</div>
-                <div class="stat-progress">
-                  <var-progress :value="getPendingPercentage" :show-value="false" track-color="#e8e8e8"
-                    color="#fdcb6e" />
-                </div>
               </div>
               <div class="stat-footer">
                 <var-chip type="warning" size="small">{{ getPendingPercentage.toFixed(1) }}%</var-chip>
               </div>
             </div>
           </var-col>
-          <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-            <div class="stat-card stat-batches">
-              <div class="stat-header">
-                <var-icon name="format-list-bulleted-type" :size="28" />
-                <span class="stat-label">{{ $t('home.stats.totalBatches') }}</span>
-              </div>
-              <div class="stat-body">
-                <div class="stat-number">{{ totalBatches }}</div>
-                <div class="stat-progress">
-                  <var-progress :value="100" :show-value="false" track-color="#e8e8e8" color="#6c5ce7" />
-                </div>
-              </div>
-            </div>
-          </var-col>
         </var-row>
       </var-card>
+    </div>
     </div>
   </div>
 </template>
@@ -150,37 +141,32 @@
   import { computed, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { usePackageStore } from '@/stores/package';
-  import { useOutboundStore } from '@/stores/outbound';
-  import { useInboundBatchStore } from '@/stores/inbound';
-  import { PackageStatus } from '@/types';
   import { useTitleStore } from '@/stores/title';
+  import { calculateViewHeight } from '@/utils/calculateHeight'
 
   const router = useRouter();
   const packageStore = usePackageStore();
-  const outboundStore = useOutboundStore();
-  const inboundBatchStore = useInboundBatchStore();
   const titleStore = useTitleStore();
-  // 直接传递标题键，而不是翻译后的固定字符串
+  
   titleStore.setTitle('home.title');
 
-  // 导航到指定页面
   const navigateTo = (path: string) => {
     router.push(path);
   };
 
-  // 数据统计
-  const totalPackages = computed(() => packageStore.getAllPackages.length);
-  const inStockPackages = computed(() =>
-    packageStore.getAllPackages.filter(pkg => pkg.status === PackageStatus.IN_STOCK).length
-  );
-  const pendingPackages = computed(() =>
-    packageStore.getAllPackages.filter(pkg => pkg.status === PackageStatus.PENDING).length
-  );
-  const totalBatches = computed(() => outboundStore.getAllBatches.length);
+  const totalPackages = computed(() => packageStore.totalProcessedCount);
+  const inStockPackages = computed(() => packageStore.inStockCount);
+  const interceptedPackages = computed(() => packageStore.interceptedCount);
+  const pendingPackages = computed(() => packageStore.pendingCount);
 
   const getInStockPercentage = computed(() => {
     if (totalPackages.value === 0) return 0;
     return (inStockPackages.value / totalPackages.value) * 100;
+  });
+
+  const getInterceptedPercentage = computed(() => {
+    if (totalPackages.value === 0) return 0;
+    return (interceptedPackages.value / totalPackages.value) * 100;
   });
 
   const getPendingPercentage = computed(() => {
@@ -188,19 +174,12 @@
     return (pendingPackages.value / totalPackages.value) * 100;
   });
 
-  // 页面加载时初始化数据
   onMounted(() => {
-    inboundBatchStore.initData();
+    packageStore.loadPackageStats();
   });
 </script>
 
 <style scoped lang="css">
-  .home-container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
   .page-title {
     font-size: 2.5rem;
     font-weight: 700;

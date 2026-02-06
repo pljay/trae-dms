@@ -56,6 +56,12 @@ export default {
       cameraNotFound: '未找到摄像头设备',
       cameraNotSupported: '浏览器不支持摄像头功能',
       notInBatch: '该单号不在入仓批次中，禁止入库',
+      notForecast: '非预报包裹，直接拦截',
+      alreadyInStock: '已入库状态，重复入库',
+      pendingIntercept: '拦截',
+      alreadyIntercepted: '重复拦截',
+      invalidParams: '参数无效',
+      invalidStatus: '{status}状态，禁止再次入库'
   },
   packageRecords: {
     title: '包裹记录',
@@ -65,7 +71,8 @@ export default {
       pending: '待入库',
       pendingIntercept: '待拦截',
       intercepted: '已拦截',
-      outOfStock: '已出库'
+      outOfStock: '已出库',
+      hold: '待处理'
     },
     table: {
       trackNo: '单号',
@@ -116,7 +123,7 @@ export default {
       completed: '已出库'
     },
     table: {
-      serialNumber: '出库流水编号',
+      serialNumber: '编号',
       channel: '渠道',
       expectedQuantity: '预计数量',
       actualQuantity: '实际数量',
@@ -192,7 +199,8 @@ export default {
       inProgress: '入仓中',
       completed: '已入仓',
       outboundInProgress: '出仓中',
-      outboundCompleted: '已出仓'
+      outboundCompleted: '已出仓',
+      unknown: '未知'
     },
     // 出库批次状态
     outboundBatch: {
@@ -219,6 +227,7 @@ export default {
     status: '状态',
     createdAt: '创建时间',
     inboundProgress: '入仓进度',
+    outboundProgress: '出仓进度',
     channelProgress: '渠道进度',
     packageRecords: '包裹记录',
     noChannelInfo: '暂无渠道信息',
@@ -255,7 +264,11 @@ export default {
     cameraPermissionDenied: '摄像头权限被拒绝',
     flashlightError: '手电筒操作失败',
     albumNotSupported: '暂不支持相册扫描',
-    scanTimeout: '扫描超时，请重试'
+    scanTimeout: '扫描超时，请重试',
+    cameraStarted: '摄像头已启动',
+    cameraNotSupported: '浏览器不支持摄像头功能',
+    cameraNotFound: '未找到摄像头设备',
+    cameraInUse: '摄像头正在使用中'
   },
   voiceSetting: {
     title: '语音设置',

@@ -1,5 +1,5 @@
 <template>
-  <div class="voice-setting-view">
+  <div class="view-content">
     <var-card shadow="hover">
       <!-- 音量配置 -->
       <div class="setting-item">
@@ -31,7 +31,7 @@
         <var-slider
           v-model="rate"
           :min="0.5"
-          :max="100"
+          :max="20"
           :step="0.1"
           @change="handleRateChange"
         ></var-slider>
@@ -58,7 +58,7 @@ const { t } = useI18n()
 // 音量、语调、语速
 const volume = ref(1.0)
 const pitch = ref(1.0)
-const rate = ref(20)
+const rate = ref(2.0)
 const titleStore = useTitleStore()
 titleStore.setTitle('voiceSetting.title')
 // 处理音量变化
@@ -120,11 +120,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.voice-setting-view {
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 0 16px;
-}
+
 
 .setting-item {
   margin-bottom: 24px;

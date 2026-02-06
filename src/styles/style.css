@@ -1,9 +1,42 @@
+/* CSS Variables for consistent styling */
+:root {
+  /* Navigation heights */
+  --app-bar-height: 56px;
+  --bottom-navigation-height: 64px;
+
+  /* Color palette */
+  --primary-color: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
+  --secondary-color: #10b981;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --background-color: #f9fafb;
+  --surface-color: #ffffff;
+  --border-color: #e5e7eb;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+  --success-color: #10b981;
+}
+
+/* Dark mode variables */
+.dark {
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --background-color: #111827;
+  --surface-color: #1f2937;
+  --border-color: #374151;
+}
+
 body {
   transition: background-color .25s, color .25s;
   color: var(--color-text);
   background-color: var(--color-body);
   color-scheme: var(--color-scheme);
   margin: 0 !important;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-y: hidden;
 }
 
 /* Barcode scanner styles */
@@ -52,12 +85,13 @@ body.barcode-scanner-active {
 
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
+
   .barcode-scanner-modal,
   .barcode-scanner-active .scan-view {
     --background: transparent;
     --ion-background-color: transparent;
   }
-  
+
   /* Ensure navigation elements have proper dark mode styling */
   .barcode-scanner-active var-app-bar,
   .barcode-scanner-active var-bottom-navigation {
@@ -66,19 +100,29 @@ body.barcode-scanner-active {
   }
 }
 
-
-/* 非登录页面添加底部间距 */
-.page-container:not(.login-page) {
-  padding-top: var(--app-bar-height);
-  /* 为顶部导航预留空间 */
-  padding-bottom: var(--bottom-navigation-height);
-  /* 为底部导航预留空间 */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
 }
 
-/* 登录页面移除底部间距 */
+/* Non-login page with navigation */
+.page-container:not(.login-page) {
+  padding-top: var(--app-bar-height);
+  padding-bottom: var(--bottom-navigation-height);
+}
+
+/* Login page full height */
 .page-container.login-page {
-  padding-bottom: 0;
-  height: 100vh !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
+  height: 100vh;
+  overflow-y: hidden;
+}
+
+/* Ensure views have proper spacing */
+.view-content {
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }

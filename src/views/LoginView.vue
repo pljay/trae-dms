@@ -29,6 +29,8 @@
   import { useRouter } from 'vue-router'
   import { useAuthStore } from '@/stores/auth'
   import { useI18n } from 'vue-i18n'
+  import { initializeAppData } from '@/utils/init'
+  import { authApi } from '@/api'
 
   const router = useRouter()
   const authStore = useAuthStore()
@@ -59,20 +61,34 @@
       await loginFormRef.value.validate()
       loading.value = true
 
-      // 模拟登录请求
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      authStore.login(loginForm)
+      // 调用登录API
+      const loginResponse = await authApi.login({
+        username: loginForm.username,
+        password: loginForm.password
+      })
+      console.log('Login Data:', loginResponse)
+      // 登录成功后更新store
+      authStore.login({
+        ...loginForm,
+        id: loginResponse.userInfo.id,
+        username: loginResponse.userInfo.username,
+        name: loginResponse.userInfo.realname,
+        orgCodeTxt: loginResponse.userInfo.orgCodeTxt,
+      }, loginResponse.token)
+      
+      // 登录成功后初始化应用数据
+      await initializeAppData()
+      
       Snackbar({
         type: 'success',
         content: t('login.loginSuccess'),
         duration: 2000
       })
       router.push('/home')
-    } catch (error) {
+    } catch (error: any) {
       Snackbar({
         type: 'error',
-        content: t('login.loginFailed'),
+        content: error.message || t('login.loginFailed'),
         duration: 2000
       })
     } finally {

@@ -1,9 +1,21 @@
 <template>
-  <div class="scan-view">
+  <div class="view-content scan-view">
+    <!-- 返回按钮 -->
+    <div class="back-section">
+      <var-button @click="handleBack" type="primary">{{ $t('common.back') }}</var-button>
+    </div>
+    
     <!-- 扫描区域（微信风格） -->
     <div class="scan-area">
-      <!-- 扫描框 -->
-      <div class="scan-frame">
+      <!-- Web平台摄像头预览 -->
+      <div v-if="!isNativePlatform" class="web-camera-preview">
+        <video ref="videoRef" class="scanner-video" autoplay playsinline></video>
+        <!-- 扫描线 -->
+        <div class="scan-line"></div>
+      </div>
+      
+      <!-- 原生平台扫描框 -->
+      <div v-else class="scan-frame">
         <!-- 扫描线 -->
         <div class="scan-line"></div>
         <!-- 四角边框 -->
@@ -20,14 +32,14 @@
       <div class="scan-help">{{ $t('scan.help') }}</div>
       
       <!-- 手电筒控制 -->
-      <div class="torch-control" @click="toggleTorch">
+      <div class="torch-control" @click="toggleTorch" v-if="isNativePlatform">
         <div class="torch-icon">{{ isTorchEnabled ? 'flash_on' : 'flash_off' }}</div>
         <div class="torch-text">{{ isTorchEnabled ? $t('scan.lightOff') : $t('scan.lightOn') }}</div>
       </div>
     </div>
     
     <!-- 底部操作栏 -->
-    <div class="scan-footer">
+    <!-- <div class="scan-footer">
       <div class="footer-item" @click="handleAlbum">
         <div class="footer-icon">image</div>
         <div class="footer-text">{{ $t('scan.album') }}</div>
@@ -36,10 +48,10 @@
         <div class="footer-icon">edit</div>
         <div class="footer-text">{{ $t('scan.manualInput') }}</div>
       </div>
-    </div>
+    </div> -->
     
     <!-- 手动输入弹窗 -->
-    <var-dialog v-model:show="showManualInput" :title="$t('scan.manualInput')" width="80%">
+    <!-- <var-dialog v-model:show="showManualInput" :title="$t('scan.manualInput')" width="80%">
       <var-input
         v-model="manualInput"
         :placeholder="$t('scan.enterCode')"
@@ -50,212 +62,37 @@
         <var-button text @click="showManualInput = false">{{ $t('common.cancel') }}</var-button>
         <var-button type="primary" @click="handleManualInputSubmit">{{ $t('common.confirm') }}</var-button>
       </template>
-    </var-dialog>
+    </var-dialog> -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { Snackbar } from '@varlet/ui'
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useTitleStore } from '@/stores/title'
-import { BarcodeScanner, BarcodeFormat, LensFacing } from '@capacitor-mlkit/barcode-scanning'
 import { Capacitor } from '@capacitor/core'
-import { Torch } from '@capawesome/capacitor-torch'
+import { useScan } from '@/composables/useScan'
 
-// Web 平台条码扫描 polyfill
-import "barcode-detector/polyfill"
-
-const { t } = useI18n()
-const router = useRouter()
-const route = useRoute()
 const titleStore = useTitleStore()
 titleStore.setTitle('scan.title')
 
-// 状态管理
-const showManualInput = ref(false)
-const manualInput = ref('')
-const isScanning = ref(false)
-const isTorchEnabled = ref(false)
-const isTorchAvailable = ref(false)
+// 暴露Capacitor到模板
+defineExpose({
+  Capacitor
+})
 
-
-
-// 扫码监听器引用
-let barcodeListener: any = null
-
-// 提高屏幕亮度 - 移除了ScreenBrightness依赖，变为空实现
-const increaseBrightness = async () => {
-  // 空实现
-}
-
-// 恢复原始屏幕亮度 - 移除了ScreenBrightness依赖，变为空实现
-const restoreBrightness = async () => {
-  // 空实现
-}
-
-// 检查手电筒可用性
-const checkTorchAvailability = async () => {
-  if (Capacitor.getPlatform() === 'web') {
-    isTorchAvailable.value = false
-    return
-  }
+// 使用扫描组合式函数
+const {
+  // 状态
+  isTorchEnabled,
+  isNativePlatform,
+  videoRef,
   
-  try {
-    const { available } = await Torch.isAvailable()
-    isTorchAvailable.value = available
-  } catch (error) {
-    console.error('Failed to check torch availability:', error)
-    isTorchAvailable.value = false
-  }
-}
-
-// 切换手电筒
-const toggleTorch = async () => {
-  if (Capacitor.getPlatform() === 'web' || !isTorchAvailable.value) {
-    return
-  }
-  
-  try {
-    await Torch.toggle()
-    const { enabled } = await Torch.isEnabled()
-    isTorchEnabled.value = enabled
-  } catch (error) {
-    console.error('Failed to toggle torch:', error)
-  }
-}
-
-// 关闭手电筒
-const turnTorchOff = async () => {
-  if (Capacitor.getPlatform() === 'web') return
-  
-  try {
-    await Torch.disable()
-    isTorchEnabled.value = false
-  } catch (error) {
-    console.error('Failed to turn torch off:', error)
-  }
-}
-
-// 启动扫描
-const startScan = async () => {
-  try {
-    // 请求摄像头权限
-    const { camera } = await BarcodeScanner.requestPermissions()
-    
-    if (camera !== 'granted') {
-      Snackbar({ type: 'error', content: t('scan.cameraPermissionDenied') })
-      handleBack()
-      return
-    }
-    
-    // 提高屏幕亮度
-    await increaseBrightness()
-    
-    // 检查手电筒可用性
-    await checkTorchAvailability()
-    document.querySelector('scan-frame')?.classList.add('barcode-scanner-active');
-    // 启动扫描
-    isScanning.value = true
-
-    // 添加条码扫描监听器
-    barcodeListener = await BarcodeScanner.addListener(
-      'barcodesScanned',
-      async (event) => {
-        console.log('Barcodes scanned:', event.barcodes)
-        if (event.barcodes && event.barcodes.length > 0) {
-          const barcode = event.barcodes[0]
-          if (barcode.rawValue) {
-            handleScanSuccess(barcode.rawValue)
-          }
-        }
-      }
-    )
-    // 启动扫描 - 插件会在原生层面处理视频流
-    await BarcodeScanner.startScan({
-      formats: [BarcodeFormat.QrCode, BarcodeFormat.Code128, BarcodeFormat.Ean13],
-      lensFacing: LensFacing.Back
-    })
-    
-  } catch (error) {
-    console.error('Scan error:', error)
-    Snackbar({ type: 'error', content: t('scan.scanFailed') })
-    handleBack()
-  }
-}
-
-// 停止扫描
-const stopScan = async () => {
-   // Make all elements in the WebView visible again
-  document.querySelector('scan-frame')?.classList.remove('barcode-scanner-active');
-  isScanning.value = false
-  try {
-    // 移除所有监听器
-    if (barcodeListener) {
-      await barcodeListener.remove()
-      barcodeListener = null
-    }
-    
-    // 停止扫描
-    await BarcodeScanner.stopScan()
-    
-    // 关闭手电筒
-    await turnTorchOff()
-    
-    // 恢复亮度
-    await restoreBrightness()
-  } catch (error) {
-    console.error('Failed to stop scan:', error)
-  }
-}
-
-// 扫描成功处理
-const handleScanSuccess = (code: string) => {
-  stopScan()
-  
-  // 获取调用来源和回调信息
-  const from = route.query.from as string
-  const callback = route.query.callback as string
-  
-  // 传递扫描结果
-  if (from && callback) {
-    // 使用会话存储传递结果
-    sessionStorage.setItem('scanResult', code)
-    router.push({ name: from as any })
-  } else {
-    // 直接返回上一页
-    router.back()
-  }
-  
-  Snackbar({ type: 'success', content: t('scan.scanSuccess') })
-}
-
-// 返回按钮处理
-const handleBack = () => {
-  stopScan()
-  router.back()
-}
-
-// 相册选择
-const handleAlbum = () => {
-  Snackbar({ type: 'warning', content: t('scan.albumNotSupported') })
-  // 注意：Capacitor条码扫描插件不支持从相册扫描，需要额外集成图片选择和识别库
-}
-
-// 手动输入
-const handleManualInput = () => {
-  showManualInput.value = true
-}
-
-// 手动输入提交
-const handleManualInputSubmit = () => {
-  if (manualInput.value.trim()) {
-    handleScanSuccess(manualInput.value.trim())
-    showManualInput.value = false
-    manualInput.value = ''
-  }
-}
+  // 方法
+  startScan,
+  stopScan,
+  toggleTorch,
+  handleBack
+} = useScan()
 
 // 组件挂载时启动扫描
 onMounted(async () => {
@@ -279,6 +116,45 @@ onBeforeUnmount(async () => {
   overflow: hidden;
   box-sizing: border-box;
   min-height: calc(100vh - var(--app-bar-height) - var(--bottom-navigation-height));
+  position: relative;
+}
+
+/* 返回按钮 */
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.back-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.back-icon {
+  font-size: 24px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 扫描区域 */
@@ -290,6 +166,24 @@ onBeforeUnmount(async () => {
   justify-content: center;
   position: relative;
   margin-top: 18vh
+}
+
+/* Web平台摄像头预览 */
+.web-camera-preview {
+  position: relative;
+  width: min(80vw, 80vh, 320px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  margin: 0 auto;
+}
+
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(1.1) contrast(1.1);
 }
 
 /* 扫描框 - 微信风格 */

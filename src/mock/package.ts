@@ -1,80 +1,15 @@
 import { MockMethod } from 'vite-plugin-mock'
-import { faker } from '@faker-js/faker'
+import { mockPackages } from './global'
+import { PackageStatus, ErrorCode } from '../types/index'
 
-// 包裹状态枚举
-const PackageStatus = {
-  PENDING: 'pending',       // 待入库
-  IN_STOCK: 'in_stock',     // 已入库
-  PENDING_INTERCEPT: 'pending_intercept', // 待拦截
-  INTERCEPTED: 'intercepted', // 已拦截
-  OUT_OF_STOCK: 'out_of_stock' // 已出库
-}
-
-// 渠道列表
-const channels = ['USPS', 'UPS', 'DHL', 'FedEx', 'EMS', 'SF Express', 'YTO Express', 'ZTO Express']
-
-// 国家列表
-const countries = ['China', 'USA', 'UK', 'Germany', 'France', 'Japan', 'Canada', 'Australia', 'South Korea', 'Singapore']
-
-// 生成随机跟踪号
-const generateTrackNo = () => {
-  // 使用faker生成更真实的跟踪号，格式如 TT123456789012
-  return `TT${faker.string.numeric({ length: 12, exclude: ['0'] })}
-`
-}
-
-// 生成随机批次号
-const generateBatchSerialNumber = () => {
-  const year = new Date().getFullYear()
-  const random = faker.string.numeric({ length: 4, exclude: ['0'] })
-  return `OB${year}${random}`
-}
-
-// 模拟包裹数据
-const mockPackages = Array.from({ length: 50 }, (_, i) => {
-  // 随机生成状态
-  const status = faker.helpers.arrayElement(Object.values(PackageStatus))
-  
-  // 生成创建时间，过去30天内
-  const createdAt = faker.date.past({ refDate: new Date()})
-  
-  // 生成扫描时间，根据状态决定
-  const scanInAt = status === PackageStatus.PENDING ? null : faker.date.between({ from: createdAt, to: new Date() })
-  const scanOutAt = status === PackageStatus.OUT_OF_STOCK 
-    ? faker.date.between({ from: scanInAt || createdAt, to: new Date() })
-    : null
-  
-  // 只有出库状态才有批次号
-  const batchSerialNumber = scanOutAt ? generateBatchSerialNumber() : null
-  
-  return {
-    id: i + 1,
-    trackNo: generateTrackNo(),
-    status,
-    weight: faker.number.float({ min: 0.5, max: 20.5, fractionDigits: 2 }), // 0.5kg - 20.5kg, 保留两位小数
-    length: faker.number.float({ min: 10, max: 60, fractionDigits: 1 }), // 10cm - 60cm, 保留一位小数
-    width: faker.number.float({ min: 5, max: 45, fractionDigits: 1 }), // 5cm - 45cm, 保留一位小数
-    height: faker.number.float({ min: 3, max: 33, fractionDigits: 1 }), // 3cm - 33cm, 保留一位小数
-    channel: faker.helpers.arrayElement(channels),
-    country: faker.helpers.arrayElement(countries),
-    scanInAt: scanInAt?.toISOString() || null,
-    scanOutAt: scanOutAt?.toISOString() || null,
-    batchSerialNumber,
-    createdAt: createdAt.toISOString(),
-    updatedAt: scanOutAt?.toISOString() || scanInAt?.toISOString() || createdAt.toISOString()
-  }
-})
-
-// 统一响应格式
 const responseHandler = (data: any, message = 'success', code = 200) => {
   return {
     code,
-    message,
-    data
+    data,
+    message
   }
 }
 
-// 分页处理
 const paginate = (data: any[], page: number, pageSize: number) => {
   const start = (page - 1) * pageSize
   const end = start + pageSize
@@ -87,34 +22,72 @@ const paginate = (data: any[], page: number, pageSize: number) => {
 }
 
 export default [
-  // 获取所有包裹记录（支持分页和搜索）
+  // 获取仓库中所有件数（已入库、已拦截、待处理）
   {
-    url: '/api/packages',
+    url: '/oll-boot/api/dms/into/parcel/count',
     method: 'get',
-    response: ({ query }: { query: { page?: string, pageSize?: string, trackNo?: string, status?: string } }) => {
-      const { page = '1', pageSize = '10', trackNo, status } = query
+    response: () => {
+      const intoCount = mockPackages.filter(item => item.status === PackageStatus.IN_STOCK).length
+      const interceptedCount = mockPackages.filter(item => item.status === PackageStatus.INTERCEPTED).length
+      const holdCount = mockPackages.filter(item => item.status === PackageStatus.PENDING).length
+      const totalCount = intoCount + interceptedCount + holdCount
+      
+      return responseHandler({
+        intoCount,
+        interceptedCount,
+        holdCount,
+        totalCount
+      })
+    }
+  },
+  
+  // 获取待拦截包裹列表
+  {
+    url: '/oll-boot/api/dms/parcel/hold',
+    method: 'get',
+    response: ({ query, body }: { query: { page?: string, pageSize?: string }, body?: Record<string, any> }) => {
+      const { page = '1', pageSize = '10' } = query
       let filtered = [...mockPackages]
       
-      // 按跟踪号搜索
-      if (trackNo) {
-        filtered = filtered.filter(item => item.trackNo.includes(String(trackNo)))
+      filtered = filtered.filter(item => item.status === PackageStatus.PENDING_INTERCEPT || item.status === PackageStatus.INTERCEPTED)
+      
+      if (body?.trackNo) {
+        filtered = filtered.filter(item => item.trackNo.includes(String(body.trackNo)))
       }
       
-      // 按状态筛选
-      if (status) {
-        filtered = filtered.filter(item => item.status === String(status))
-      }
-      
-      // 分页
       const result = paginate(filtered, Number(page), Number(pageSize))
+      return responseHandler(result)
+    }
+  },
+  
+  // 获取所有包裹记录（支持分页和查询条件）
+  {
+    url: '/oll-boot/api/dms/parcel',
+    method: 'get',
+    response: ({ query, body }: { query: { page?: string, pageSize?: string }, body?: Record<string, any> }) => {
+      const { page = '1', pageSize = '10' } = query
+      let filtered = [...mockPackages]
       
+      if (body?.trackNo) {
+        filtered = filtered.filter(item => item.trackNo.includes(String(body.trackNo)))
+      }
+      
+      if (body?.status) {
+        filtered = filtered.filter(item => item.status === String(body.status))
+      }
+      
+      if (body?.inboundBatchId) {
+        filtered = filtered.filter(item => item.inboundBatchId === Number(body.inboundBatchId))
+      }
+      
+      const result = paginate(filtered, Number(page), Number(pageSize))
       return responseHandler(result)
     }
   },
   
   // 根据跟踪号获取包裹
   {
-    url: '/api/packages/:trackNo',
+    url: '/oll-boot/api/dms/parcel/:trackNo',
     method: 'get',
     response: (config: any) => {
       const { params = {} } = config
@@ -131,43 +104,16 @@ export default [
   
   // 创建包裹记录
   {
-    url: '/api/packages',
+    url: '/oll-boot/api/dms/parcel',
     method: 'post',
     response: (config: any) => {
-      const { body } = config
-      if (!body || !body.trackNo || !body.weight || !body.length || !body.width || !body.height || !body.channel || !body.country) {
-        return responseHandler(null, '缺少必填参数', 400)
-      }
-      
-      // 检查跟踪号是否已存在
-      const existingPkg = mockPackages.find(item => item.trackNo === body.trackNo)
-      if (existingPkg) {
-        return responseHandler(null, '跟踪号已存在', 409)
-      }
-      
-      // 生成当前时间
-      const now = new Date().toISOString()
-      
-      // 根据业务逻辑确定状态：如果有scanOutAt则为出库状态，否则为入库状态
-      let status = body.status || PackageStatus.IN_STOCK
-      if (body.scanOutAt) {
-        status = PackageStatus.OUT_OF_STOCK
-      } else if (!body.scanInAt) {
-        // 如果没有提供scanInAt，默认使用当前时间
-        body.scanInAt = now
-      }
-      
+      const { body = {} } = config
       const newPackage = {
-        id: mockPackages.length + 1,
         ...body,
-        status,
-        scanInAt: body.scanInAt || now,
-        scanOutAt: body.scanOutAt || null,
-        batchSerialNumber: body.batchSerialNumber || null,
-        createdAt: now,
-        updatedAt: now
+        id: mockPackages.length + 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
-      
       mockPackages.unshift(newPackage)
       return responseHandler(newPackage, '创建成功')
     }
@@ -175,14 +121,14 @@ export default [
   
   // 更新包裹状态
   {
-    url: '/api/packages/:trackNo/status',
+    url: '/oll-boot/api/dms/parcel/:trackNo/status',
     method: 'put',
     response: (config: any) => {
       const { params = {}, body = {} } = config
       const { trackNo } = params
       const { status } = body
       
-      if (!status || !Object.values(PackageStatus).includes(status)) {
+      if (!status || !Object.values(PackageStatus).includes(status as PackageStatus)) {
         return responseHandler(null, '无效的状态值', 400)
       }
       
@@ -191,66 +137,81 @@ export default [
         return responseHandler(null, '包裹不存在', 404)
       }
       
-      pkg.status = status
-      pkg.updatedAt = new Date().toISOString()
+      pkg.status = status as PackageStatus
+
       
       return responseHandler(pkg, '状态更新成功')
     }
   },
   
+  // 更新包裹信息
+  {
+    url: '/oll-boot/api/dms/parcel/:trackNo',
+    method: 'put',
+    response: (config: any) => {
+      const { params = {}, body = {} } = config
+      const { trackNo } = params
+      
+      const pkg = mockPackages.find(item => item.trackNo === trackNo)
+      if (!pkg) {
+        return responseHandler(null, '包裹不存在', 404)
+      }
+      
+      Object.assign(pkg, body)
+
+      
+      return responseHandler(pkg, '更新成功')
+    }
+  },
+  
   // 扫描入库
   {
-    url: '/api/packages/:trackNo/scan-in',
+    url: '/oll-boot/api/dms/inbopund/pre/scan',
     method: 'post',
     response: (config: any) => {
-      console.log("扫描入库请求",config)
-      const { query = {trackNo:String} } = config
-      const { trackNo } = query
-      console.log("扫描入库",trackNo)
+      const { body = {} } = config
+      const { trackNo } = body
+      
+      if (!trackNo) {
+        return responseHandler(null, '缺少包裹跟踪号', 400)
+      }
+      
       let pkg = mockPackages.find(item => item.trackNo === trackNo)
       const now = new Date().toISOString()
       
-      if (pkg) {
-        pkg.status = PackageStatus.IN_STOCK
-        pkg.scanInAt = now
-        pkg.updatedAt = now
-      } else {
-        // 创建新包裹，使用faker生成更真实的数据
-        const newPackage = {
-          id: mockPackages.length + 1,
-          trackNo:trackNo,
-          status: PackageStatus.IN_STOCK,
-          scanInAt: now,
-          scanOutAt: null,
-          batchSerialNumber: null,
-          weight: faker.number.float({ min: 0.5, max: 20.5, fractionDigits: 2 }),
-          length: faker.number.float({ min: 10, max: 60, fractionDigits: 1 }),
-          width: faker.number.float({ min: 5, max: 45, fractionDigits: 1 }),
-          height: faker.number.float({ min: 3, max: 33, fractionDigits: 1 }),
-          channel: faker.helpers.arrayElement(channels),
-          country: faker.helpers.arrayElement(countries),
-          createdAt: now,
-          updatedAt: now
-        }
-        
-        mockPackages.unshift(newPackage)
-        pkg = newPackage
+      if (!pkg) {
+        return responseHandler(null, '非预报包裹，直接拦截', ErrorCode.NOT_FORECAST_PACKAGE)
       }
       
-      return responseHandler(pkg, '扫描入库成功')
+      switch (pkg.status) {
+        case PackageStatus.PENDING:
+          pkg.status = PackageStatus.IN_STOCK
+          pkg.scanInAt = now
+
+          return responseHandler(pkg, '扫描入库成功', 200)
+        case PackageStatus.IN_STOCK:
+          return responseHandler(pkg, '已入库状态，重复入库', ErrorCode.DUPLICATE_IN_STOCK)
+        case PackageStatus.PENDING_INTERCEPT:
+          pkg.status = PackageStatus.INTERCEPTED
+
+          return responseHandler(pkg, '拦截', ErrorCode.PENDING_INTERCEPT)
+        case PackageStatus.INTERCEPTED:
+          return responseHandler(pkg, '重复拦截', ErrorCode.DUPLICATE_INTERCEPTED)
+        default:
+          return responseHandler(pkg, `包裹当前状态为${pkg.status}，无法入库`, ErrorCode.INVALID_STATUS)
+      }
     }
   },
   
   // 扫描出库
   {
-    url: '/api/packages/:trackNo/scan-out',
+    url: '/oll-boot/api/dms/outbound/scan',
     method: 'post',
     response: (config: any) => {
-      const { params = {}, body = {} } = config
-      const { trackNo } = params
-      const { batchSerialNumber } = body
+      const { body = {} } = config
+      const { trackNo, batchId } = body
       
-      if (!batchSerialNumber) {
+      if (!batchId) {
         return responseHandler(null, '缺少批次号', 400)
       }
       
@@ -265,73 +226,10 @@ export default [
       
       pkg.status = PackageStatus.OUT_OF_STOCK
       pkg.scanOutAt = new Date().toISOString()
-      pkg.batchSerialNumber = batchSerialNumber
-      pkg.updatedAt = new Date().toISOString()
+      pkg.outboundBatchId = batchId
+
       
       return responseHandler(pkg, '扫描出库成功')
-    }
-  },
-  
-  // 扫描入库（新接口，直接使用 /api/scan-in）
-  {
-    url: '/api/scan-in',
-    method: 'post',
-    response: (config: any) => {
-      console.log('扫描入库请求（新接口）:', config)
-      const { body = {} } = config
-      const { trackNo } = body
-      
-      if (!trackNo) {
-        return responseHandler(null, '缺少必填参数', 400)
-      }
-      
-      console.log('扫描入库（新接口）trackNo:', trackNo)
-      let pkg = mockPackages.find(item => item.trackNo === trackNo)
-      const now = new Date().toISOString()
-      
-      if (pkg) {
-        pkg.status = PackageStatus.IN_STOCK
-        pkg.scanInAt = now
-        pkg.updatedAt = now
-      } else {
-        // 创建新包裹，使用faker生成更真实的数据
-        const newPackage = {
-          id: mockPackages.length + 1,
-          trackNo: trackNo,
-          status: PackageStatus.IN_STOCK,
-          scanInAt: now,
-          scanOutAt: null,
-          batchSerialNumber: null,
-          weight: faker.number.float({ min: 0.5, max: 20.5, fractionDigits: 2 }),
-          length: faker.number.float({ min: 10, max: 60, fractionDigits: 1 }),
-          width: faker.number.float({ min: 5, max: 45, fractionDigits: 1 }),
-          height: faker.number.float({ min: 3, max: 33, fractionDigits: 1 }),
-          channel: faker.helpers.arrayElement(channels),
-          country: faker.helpers.arrayElement(countries),
-          createdAt: now,
-          updatedAt: now
-        }
-        
-        mockPackages.unshift(newPackage)
-        pkg = newPackage
-      }
-      
-      return responseHandler(pkg, '扫描入库成功')
-    }
-  },
-  
-  // 根据状态筛选包裹（旧接口兼容）
-  {
-    url: '/api/packages/filter',
-    method: 'get',
-    response: ({ query }: { query: { status?: string } }) => {
-      const { status } = query
-      if (!status) {
-        return responseHandler(mockPackages)
-      }
-      
-      const filtered = mockPackages.filter(item => item.status === String(status))
-      return responseHandler(filtered)
     }
   }
 ] as MockMethod[]

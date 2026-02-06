@@ -3,20 +3,21 @@ import { User } from '../types'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null as User | null,
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
     token: localStorage.getItem('token') || '',
     isAuthenticated: !!localStorage.getItem('token')
   }),
   
   actions: {
-    login(user: User) {
-      // 模拟登录，实际项目中应该调用API获取token
-      this.token = 'mock-token-' + Date.now()
+    login(user: User, token?: string) {
+      // 使用API返回的token或生成一个模拟token
+      this.token = token || 'mock-token-' + Date.now()
       this.user = user
       this.isAuthenticated = true
       
       // 保存到localStorage
       localStorage.setItem('token', this.token)
+      localStorage.setItem('user', JSON.stringify(user))
       if (user.remember) {
         localStorage.setItem('username', user.username)
         // 不要在localStorage中存储明文密码
@@ -26,12 +27,12 @@ export const useAuthStore = defineStore('auth', {
         // localStorage.removeItem('password')
       }
     },
-    
     logout() {
       this.token = ''
       this.user = null
       this.isAuthenticated = false
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
     },
     
     getSavedCredentials() {

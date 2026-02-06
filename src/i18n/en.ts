@@ -54,7 +54,14 @@ export default {
       cameraStarted: 'Camera started',
       cameraPermissionDenied: 'Camera permission denied',
       cameraNotFound: 'Camera not found',
-      cameraNotSupported: 'Camera not supported'
+      cameraNotSupported: 'Camera not supported',
+      notInBatch: 'This tracking number is not in inbound batch, prohibited from storage',
+      notForecast: 'Non-forecast package, directly intercepted',
+      alreadyInStock: 'Already in stock, duplicate storage',
+      pendingIntercept: 'Intercepted',
+      alreadyIntercepted: 'Already intercepted, duplicate intercept',
+      invalidParams: 'Invalid parameters',
+      invalidStatus: '{status} status, cannot be stored again'
   },
   packageRecords: {
     title: 'Package Records',
@@ -64,7 +71,8 @@ export default {
       inStock: 'In Stock',
       pendingIntercept: 'Pending Intercept',
       intercepted: 'Intercepted',
-      outOfStock: 'Out of Stock'
+      outOfStock: 'Out of Stock',
+      hold: 'Hold'
     },
     table: {
       trackNo: 'Tracking Number',
@@ -191,7 +199,8 @@ export default {
       inProgress: 'In Progress',
       completed: 'Completed',
       outboundInProgress: 'Outbound In Progress',
-      outboundCompleted: 'Outbound Completed'
+      outboundCompleted: 'Outbound Completed',
+      unknown: 'Unknown'
     },
     // Outbound batch status
     outboundBatch: {
@@ -218,15 +227,22 @@ export default {
     status: 'Status',
     createdAt: 'Created At',
     inboundProgress: 'Inbound Progress',
+    outboundProgress: 'Outbound Progress',
     channelProgress: 'Channel Progress',
     packageRecords: 'Package Records',
     noChannelInfo: 'No channel information',
     noPackageRecords: 'No package records',
     inboundProgressText: 'Inbound Progress: {current}/{total}',
-    pendingBatches: 'Pending Batches',
-    inProgressBatches: 'In Progress Batches',
+    pendingBatches: 'Pending',
+    inProgressBatches: 'In Progress',
+    completedBatches: 'Completed',
+    outboundInProgressBatches: 'Outbound In Progress',
+    outboundCompletedBatches: 'Outbound Completed',
     noPendingBatches: 'No pending batches',
-    noInProgressBatches: 'No in-progress batches',
+    noInProgressBatches: 'No in progress batches',
+    noCompletedBatches: 'No completed batches',
+    noOutboundInProgressBatches: 'No outbound in progress batches',
+    noOutboundCompletedBatches: 'No outbound completed batches',
     labels: {
       batchNo: 'Batch No.:',
       status: 'Status:',

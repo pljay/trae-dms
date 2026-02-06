@@ -5,13 +5,13 @@ import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosReq
 interface ApiResponse<T = any> {
   code: number
   message: string
-  data: T
+  result: T
 }
 
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api', // 从环境变量获取基础 URL
-  timeout: import.meta.env.VITE_API_TIMEOUT ? Number(import.meta.env.VITE_API_TIMEOUT) : 15000, // 可通过环境变量配置超时时间
+  timeout: import.meta.env.VITE_API_TIMEOUT ? Number(import.meta.env.VITE_API_TIMEOUT) : 15000, // 从环境变量获取超时时间
   headers: {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest'
@@ -24,14 +24,12 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 可以在这里添加认证信息，如 token
     const token = localStorage.getItem('token')
+    console.log('token', token)
     if (token) {
       // 确保headers是AxiosRequestHeaders类型
-      config.headers = config.headers || {}
+      config.headers = config.headers || {} as AxiosRequestHeaders
       // 使用类型断言确保TypeScript识别为正确类型
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`
-      } as AxiosRequestHeaders
+      config.headers.set('X-access-token', `${token}`)
     }
     return config
   },
@@ -43,18 +41,20 @@ apiClient.interceptors.request.use(
 // 响应拦截器
 apiClient.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
+   
     // 统一处理响应数据
-    const { code, message, data } = response.data
+    const { code, message, result } = response.data
     if (code === 200) {
       // 开发环境打印成功响应日志
       if (import.meta.env.DEV) {
-        console.log('API Success:', response.config.url, data)
+        console.log('API Success:', response.config.url, result)
       }
-      return data
+      return result
     } else {
       // 处理错误响应
       console.error('API Error:', response.config.url, message)
-      return Promise.reject(new Error(message))
+      //抛出异常 response.data
+      throw response.data
     }
   },
   (error) => {

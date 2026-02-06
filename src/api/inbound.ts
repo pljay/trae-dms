@@ -1,47 +1,30 @@
 import apiClient from './axios'
-import type { InboundBatch, InboundBatchChannel, InboundStatus } from '../types'
+import type { InboundBatch, InboundBatchChannel, InboundStatus, PaginationResponse } from '../types'
 
 // 获取所有入库批次
-export const getAllInboundBatches = async (): Promise<InboundBatch[]> => {
-  return await apiClient.get('/inbound-batches')
+export const getAllInboundBatches = async (
+  pageNo?: number,
+  pageSize?: number,
+  status?: InboundStatus
+): Promise<PaginationResponse<InboundBatch>> => {
+  return await apiClient.get('/dms/inbound/batch/list', {
+    params: { pageNo, pageSize, status }
+  })
 }
+
 
 // 根据ID获取入库批次
 export const getInboundBatchById = async (id: string | number): Promise<InboundBatch> => {
-  return await apiClient.get(`/inbound-batches/${id}`)
-}
-
-// 根据批次号获取入库批次
-export const getInboundBatchByNumber = async (batchNumber: string): Promise<InboundBatch> => {
-  return await apiClient.get(`/inbound-batches/number/${batchNumber}`)
-}
-
-// 更新入库批次状态
-export const updateInboundBatchStatus = async (
-  id: string | number,
-  status: InboundStatus
-): Promise<InboundBatch> => {
-  return await apiClient.put(`/inbound-batches/${id}/status`, {
-    status
+  return await apiClient.get(`/dms/inbound/batch`, {
+    params: { id: id }
   })
 }
 
-// 更新入库数量
-export const updateInboundBatchQuantity = async (
-  id: string | number,
-  quantity: number
-): Promise<InboundBatch> => {
-  return await apiClient.put(`/inbound-batches/${id}/quantity`, {
-    inboundQuantity: quantity
-  })
-}
 
 // 获取入库批次渠道进度
 export const getInboundBatchChannels = async (id: string | number): Promise<InboundBatchChannel[]> => {
-  return await apiClient.get(`/inbound-batches/${id}/channels`)
+  return await apiClient.get(`/dms/inbound/parcel/groupByChannel`, {
+    params: { batchId: id }
+  })
 }
 
-// 获取入库批次的包裹记录
-export const getInboundBatchPackages = async (id: string | number): Promise<any[]> => {
-  return await apiClient.get(`/inbound-batches/${id}/packages`)
-}

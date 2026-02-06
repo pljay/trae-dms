@@ -56,4 +56,26 @@ onMounted(() => {
 </script>
 
 <style scoped lang="css">
+:deep(.var-bottom-navigation-item__label) {
+  font-size: 12px; /* 减小字体大小 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80px; /* 限制最大宽度 */
+}
+
+:deep(.var-bottom-navigation) {
+  height: auto;
+  min-height: 56px;
+}
+
+:deep(.var-bottom-navigation-item) {
+  padding: 8px 4px; /* 调整内边距 */
+  flex: 1;
+  min-width: 0;
+}
+
+:deep(.var-bottom-navigation-item__icon) {
+  font-size: 20px; /* 调整图标大小 */
+}
 </style>

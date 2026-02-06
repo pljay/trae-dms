@@ -1,25 +1,21 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { usePackageStore } from './stores/package'
-import { useOutboundStore } from './stores/outbound'
-
 import { useRoute } from 'vue-router'
+import { useAuthStore } from './stores/auth'
 import BottomNav from './components/BottomNav.vue'
 import TopBar from './components/TopBar.vue'
+import { initializeAppData } from './utils/init'
 
 const title = ref('')
-// 初始化数据
-const packageStore = usePackageStore()
-const outboundStore = useOutboundStore()
+const authStore = useAuthStore()
 
 // 使用 try-catch 处理异步初始化，避免白屏
 const initAppData = async () => {
   try {
-    // 并行初始化数据，提高性能
-    await Promise.all([
-      packageStore.initData(),
-      outboundStore.initData()
-    ])
+    // 只有已登录的用户才初始化数据
+    if (authStore.isAuthenticated) {
+      await initializeAppData()
+    }
   } catch (error) {
     console.error('Failed to initialize app data:', error)
     // 初始化失败不影响应用启动
@@ -44,11 +40,18 @@ watch(() => route.path, (newPath) => {
   isLoginPage.value = newPath === '/login'
   console.log(isLoginPage.value);
 })
+
+// 监听登录状态变化，登录后初始化数据
+watch(() => authStore.isAuthenticated, (isAuthenticated) => {
+  if (isAuthenticated) {
+    initAppData()
+  }
+})
 </script>
 
 <template>
   <div class="page-container" :class="{ 'login-page': isLoginPage }">
-    <TopBar :title="title" />  
+    <TopBar :title="title" />
     <router-view />
     <BottomNav v-if="!isLoginPage" />
   </div>
@@ -56,4 +59,8 @@ watch(() => route.path, (newPath) => {
 
 <style scoped>
 
+  router-view {
+    flex: 1;
+    overflow-y: auto;
+  }
 </style>

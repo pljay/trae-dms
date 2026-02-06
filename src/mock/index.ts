@@ -7,19 +7,22 @@
 
 export function setupProdMockServer() {
   // 只在开发环境初始化mock服务器
+  if (import.meta.env.DEV) {
     try {
-      // 动态导入，避免生产环境加载错误
+      // 动态导入，避免生产环境加载错误 只有开发环境才加载mock服务
       import('vite-plugin-mock/client').then(({ createProdMockServer }) => {
         // 动态导入mock模块
         Promise.all([
           import('@/mock/inbound'),
           import('@/mock/package'),
-          import('@/mock/outbound')
-        ]).then(([inboundModule, packageModule, outboundModule]) => {
+          import('@/mock/outbound'),
+          import('@/mock/auth')
+        ]).then(([inboundModule, packageModule, outboundModule, authModule]) => {
           createProdMockServer([
             ...inboundModule.default,
             ...packageModule.default,
-            ...outboundModule.default
+            ...outboundModule.default,
+            ...authModule.default
           ]).then(() => {
             console.log('Mock server setup completed')
           })
@@ -29,4 +32,5 @@ export function setupProdMockServer() {
       console.error('Failed to setup mock server:', error)
       // 忽略mock服务初始化错误，避免影响应用正常运行
     }
+  }
 }

@@ -59,7 +59,14 @@ export default {
     cameraStarted: 'Caméra démarrée',
     cameraPermissionDenied: 'Permission de caméra refusée',
     cameraNotFound: 'Caméra introuvable',
-    cameraNotSupported: 'Caméra non prise en charge'
+    cameraNotSupported: 'Caméra non prise en charge',
+    notInBatch: 'Ce numéro de suivi n\'est pas dans le lot entrant, stockage interdit',
+    notForecast: 'Colis non prévu, intercepté directement',
+    alreadyInStock: 'Déjà en stock, stockage en double',
+    pendingIntercept: 'Intercepté',
+    alreadyIntercepted: 'Déjà intercepté, intercepté en double',
+    invalidParams: 'Paramètres invalides',
+    invalidStatus: 'Statut {status}, impossible à stocker à nouveau'
   },
 
   // 包裹记录
@@ -69,7 +76,10 @@ export default {
       all: 'Tous',
       inStock: 'En stock',
       pending: 'En attente',
-      outOfStock: 'Hors stock'
+      pendingIntercept: 'Interception en attente',
+      intercepted: 'Intercepté',
+      outOfStock: 'Hors stock',
+      hold: 'En attente de traitement'
     },
     table: {
       trackNo: 'Numéro de suivi',
@@ -190,26 +200,33 @@ export default {
   },
 
   inboundBatches: {
-    title: 'Lots entrants',
-    batchDetail: 'Détails du lot entrant',
+    title: 'Lots de réception',
+    batchDetail: 'Détails du lot de réception',
     batchNo: 'Numéro de lot',
     status: 'Statut',
-    createdAt: 'Date de création',
-    inboundProgress: 'Progression de l\'entrée',
-    channelProgress: 'Progression du canal',
+    createdAt: 'Créé le',
+    inboundProgress: 'Progression de réception',
+    outboundProgress: 'Progression de sortie',
+    channelProgress: 'Progression par canal',
     packageRecords: 'Enregistrements de colis',
     noChannelInfo: 'Aucune information sur le canal',
     noPackageRecords: 'Aucun enregistrement de colis',
-    inboundProgressText: 'Progression de l\'entrée: {current}/{total}',
-    pendingBatches: 'Lots en attente',
-    inProgressBatches: 'Lots en cours',
+    inboundProgressText: 'Progression de réception: {current}/{total}',
+    pendingBatches: 'En attente',
+    inProgressBatches: 'En cours',
+    completedBatches: 'Terminé',
+    outboundInProgressBatches: 'Sortie en cours',
+    outboundCompletedBatches: 'Sortie terminée',
     noPendingBatches: 'Aucun lot en attente',
     noInProgressBatches: 'Aucun lot en cours',
+    noCompletedBatches: 'Aucun lot terminé',
+    noOutboundInProgressBatches: 'Aucun lot en cours de sortie',
+    noOutboundCompletedBatches: 'Aucun lot avec sortie terminée',
     labels: {
       batchNo: 'Numéro de lot:',
       status: 'Statut:',
-      createdAt: 'Date de création:',
-      inboundProgress: 'Progression de l\'entrée:'
+      createdAt: 'Créé le:',
+      inboundProgress: 'Progression de réception:'
     }
   },
 
@@ -244,7 +261,8 @@ export default {
       inProgress: 'En cours',
       completed: 'Terminé',
       outboundInProgress: 'Sortie en cours',
-      outboundCompleted: 'Sortie terminée'
+      outboundCompleted: 'Sortie terminée',
+      unknown: 'Inconnu'
     },
     // 出库批次状态
     outboundBatch: {

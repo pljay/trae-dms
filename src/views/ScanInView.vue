@@ -1,5 +1,5 @@
 <template>
-  <div class="scan-in-container">
+  <div class="view-content">
     <!-- 扫描按钮 -->
     <div class="scan-section">
       <var-card shadow="hover" class="scan-card">
@@ -8,7 +8,7 @@
             type="primary"
             size="large"
             :icon="'camera'"
-            @click="goToScan"
+            @click="goToScanHandler"
           >
             {{ $t('scanIn.cameraScan') }}
           </var-button>
@@ -49,11 +49,11 @@
         <div class="result-info">
           <div class="result-item">
             <label>{{ $t('scanIn.trackNo') }}:</label>
-            <span>{{ scanResult.trackNo }}</span>
+            <span>{{ scanResult.trackNo || scanResult.no }}</span>
           </div>
           <div class="result-item">
             <label>{{ $t('scanIn.channel') }}:</label>
-            <span>{{ scanResult.channel }}</span>
+            <span>{{ scanResult.channelCode }}</span>
           </div>
           <div class="result-item">
             <label>{{ $t('scanIn.country') }}:</label>
@@ -71,21 +71,21 @@
       </var-card>
 
       <!-- 拦截状态-->
-      <var-card shadow="hover" class="result-card intercept" v-else-if="scanStatus === 'intercept' && scanResult">
+      <var-card shadow="hover" class="result-card intercept" v-else-if="scanStatus === 'warning' && scanResult">
         <template #title>
           <div class="card-header">
             <var-icon name="warning" class="status-icon intercept-icon" />
-            <span>{{ $t('scanIn.intercepted') }}</span>
+            <span>{{errorMessage }}</span>
           </div>
         </template>
         <div class="result-info">
           <div class="result-item">
             <label>{{ $t('scanIn.trackNo') }}:</label>
-            <span>{{ scanResult.trackNo }}</span>
+            <span>{{ scanResult.trackNo || scanResult.no }}</span>
           </div>
           <div class="result-item">
             <label>{{ $t('scanIn.channel') }}:</label>
-            <span>{{ scanResult.channel }}</span>
+            <span>{{ scanResult.channelCode }}</span>
           </div>
           <div class="result-item">
             <label>{{ $t('scanIn.country') }}:</label>
@@ -107,6 +107,10 @@
           </div>
         </template>
         <div class="result-info">
+          <div class="result-item">
+            <label>{{ $t('scanIn.trackNo') }}:</label>
+            <span>{{ scanResult?.no }}</span>
+          </div>
           <div class="result-item error-message">
             <span>{{ errorMessage }}</span>
           </div>
@@ -119,82 +123,46 @@
 
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { useRouter } from 'vue-router'
-  import { Snackbar } from '@varlet/ui'
-  import { usePackageStore } from '@/stores/package'
-  import { Package } from '@/types'
-  import voiceNotification from '@/utils/voiceNotification'
   import { useTitleStore } from '@/stores/title'
+  import { Package } from '@/types'
+  import { useScan } from '@/composables/useScan'
 
-  const { t } = useI18n()
-  const router = useRouter()
-  const packageStore = usePackageStore()
   const scanResult = ref<Package | null>(null)
-  const scanStatus = ref<'success' | 'error' | 'intercept' | null>(null)
+  const scanStatus = ref<'success' | 'error' | 'warning' | null>(null)
   const errorMessage = ref<string>('')
   const manualInput = ref<string>('')
   const titleStore = useTitleStore()
   titleStore.setTitle('scanIn.title')
+  const barcode = ref<string>('')
 
-  // 跳转到独立扫描页面
-  const goToScan = () => {
-    router.push({
-      name: 'scan',
-      query: {
-        from: 'scan-in',
-        callback: 'handleScan'
-      }
-    })
+  // 使用扫描组合式函数
+  const {
+    goToScan,
+    handleScanIn
+  } = useScan()
+
+  // 跳转到独立扫描页面的处理函数
+  const goToScanHandler = () => {
+    goToScan('scan-in', 'handleScan')
   }
 
   // 处理扫描结果
   const handleScan = async (code: string) => {
-    console.log('扫描到条码:', code)
-
-    // 调用入库方法
-    const result = await packageStore.scanIn(code)
-    console.log('入库结果:', result)
-    if (result) {
-      scanResult.value = result
-      scanStatus.value = 'success'
-      Snackbar({
-        type: 'success',
-        content: t('scanIn.scanSuccess'),
-        duration: 2000
-      })
-      // 播放扫描成功语音
-      voiceNotification.speakScanSuccess()
-    } else if (result === null && packageStore.scanError) {
-      // 模拟拦截情况
-      scanResult.value = packageStore.scanError.pkg
-      scanStatus.value = 'intercept'
-      errorMessage.value = packageStore.scanError.message
-      Snackbar({
-        type: 'warning',
-        content: t('scanIn.intercepted'),
-        duration: 2000
-      })
-      // 播放拦截语音
-      voiceNotification.speakIntercepted()
+    clearScanResult()
+    const result = await handleScanIn(code)
+    console.log('Scan result:', result)
+    if (result.success) {
+      scanResult.value = result.data
+      scanStatus.value = result.status
     } else {
-      scanStatus.value = 'error'
-      errorMessage.value = t('scanIn.scanFailed')
-      Snackbar({
-        type: 'error',
-        content: t('scanIn.scanFailed'),
-        duration: 2000
-      })
-      // 播放扫描失败语音
-      voiceNotification.speakScanFailed()
+      // 即使失败，也要保留扫描到的单号
+      scanResult.value = {
+        ...result.data,
+        no: code
+      } as Package
+      scanStatus.value = result.status
+      errorMessage.value = result.message || ''
     }
-
-    // 3秒后清空结果
-    setTimeout(() => {
-      scanResult.value = null
-      scanStatus.value = null
-      errorMessage.value = ''
-    }, 3000)
   }
 
   // 处理手动输入
@@ -215,17 +183,19 @@
       handleScan(scanResultFromStorage)
     }
   })
+
+  // 清空扫描结果
+  const clearScanResult = () => {
+    scanResult.value = null
+    scanStatus.value = null
+    errorMessage.value = ''
+  }
 </script>
 
 <style scoped lang="css">
-  .scan-in-container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
 
   .scan-section {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
 
   .scan-card {
@@ -237,14 +207,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 30px;
-    gap: 20px;
+    padding: 20px;
+    gap: 15px;
   }
 
   .scan-button-container :deep(.var-button) {
-    min-height: 56px;
-    min-width: 200px;
-    font-size: 16px;
+    min-height: 50px;
+    min-width: 180px;
+    font-size: 15px;
     font-weight: 500;
   }
 
@@ -252,7 +222,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
   }
 
   .manual-input-section :deep(.var-input) {
@@ -260,13 +230,15 @@
   }
 
   .result-section {
-    margin-bottom: 40px;
+    margin-bottom: 30px;
   }
 
   .result-card {
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .result-card:hover {
@@ -275,15 +247,15 @@
   }
 
   .result-card.success {
-    border-top: 4px solid #4CAF50;
+    border-top: 4px solid var(--success-color);
   }
 
   .result-card.intercept {
-    border-top: 4px solid #FFC107;
+    border-top: 4px solid var(--warning-color);
   }
 
   .result-card.error {
-    border-top: 4px solid #f44336;
+    border-top: 4px solid var(--error-color);
   }
 
   .card-header {
@@ -291,71 +263,129 @@
     align-items: center;
     gap: 10px;
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    padding: 0 20px;
   }
 
   .status-icon {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .success-icon {
-    color: #4CAF50;
+    color: var(--success-color);
   }
 
   .intercept-icon {
-    color: #FFC107;
+    color: var(--warning-color);
   }
 
   .error-icon {
-    color: #f44336;
+    color: var(--error-color);
   }
 
   .result-info {
-    padding: 20px;
+    padding: 15px 20px;
   }
 
   .result-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-    margin-bottom: 15px;
-    font-size: 1rem;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    flex-wrap: wrap;
   }
 
   .result-item label {
     font-weight: 600;
-    color: #333;
-    min-width: 120px;
+    color: var(--text-primary);
+    min-width: 100px;
+    flex-shrink: 0;
   }
 
   .result-item span {
-    color: #666;
+    color: var(--text-secondary);
     flex: 1;
+    word-break: break-word;
   }
 
   .intercept-message span {
-    color: #FFC107;
+    color: var(--warning-color);
     font-weight: 500;
   }
 
   .error-message span {
-    color: #f44336;
+    color: var(--error-color);
     font-weight: 500;
   }
 
   @media (max-width: 768px) {
-    .scan-in-container {
+    .scan-button-container {
       padding: 15px;
+      gap: 10px;
+    }
+
+    .scan-button-container :deep(.var-button) {
+      min-height: 48px;
+      min-width: 160px;
+      font-size: 14px;
+    }
+
+    .result-card {
+      margin: 0 10px;
+    }
+
+    .card-header {
+      font-size: 1rem;
+      padding: 0 15px;
+    }
+
+    .status-icon {
+      font-size: 1.2rem;
+    }
+
+    .result-info {
+      padding: 12px 15px;
     }
 
     .result-item {
       flex-direction: column;
       align-items: flex-start;
       gap: 5px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
     }
 
     .result-item label {
       min-width: auto;
+      font-size: 0.85rem;
+    }
+
+    .result-item span {
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .result-card {
+      margin: 0 8px;
+    }
+
+    .card-header {
+      font-size: 0.95rem;
+    }
+
+    .result-item {
+      font-size: 0.85rem;
+    }
+
+    .result-item label {
+      font-size: 0.8rem;
+    }
+
+    .result-item span {
+      font-size: 0.8rem;
     }
   }
 </style>

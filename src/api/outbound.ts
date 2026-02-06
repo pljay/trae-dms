@@ -1,50 +1,44 @@
 import apiClient from './axios'
-import type { OutboundBatch, OutboundStatus, PaginationResponse } from '../types'
+import type { OutboundBatch, PaginationResponse } from '../types'
 
 // 获取所有出库批次
 export const getAllOutboundBatches = async (
-  page?: number,
+  pageNo?: number,
   pageSize?: number,
-  serialNumber?: string,
-  status?: OutboundStatus,
-  channel?: string
+  params?: Record<string, any>
 ): Promise<PaginationResponse<OutboundBatch>> => {
-  return await apiClient.get('/outbound/batches', {
-    params: { page, pageSize, serialNumber, status, channel }
+  return await apiClient.get('/dms/outbound/batch/list', {
+    params: { pageNo, pageSize, ...params }
   })
 }
 
-// 根据流水号获取出库批次
-export const getOutboundBatchBySerialNumber = async (serialNumber: string | number): Promise<OutboundBatch> => {
-  return await apiClient.get(`/outbound/batches/${serialNumber}`)
+//获取批次详情
+export const getOutboundBatchById = async (batchId: string): Promise<OutboundBatch> => {
+  return await apiClient.get(`/dms/outbound/batch`, {
+    params: { id: batchId }
+  })
 }
 
 // 创建出库批次
-export const createOutboundBatch = async (channel: string, serialNumber?: string): Promise<OutboundBatch> => {
-  return await apiClient.post('/outbound/batches', { channel, serialNumber })
-}
+export const createOutboundBatch = async (batchNo: string, channelId: string): Promise<OutboundBatch> => {
+  //更改为form-data格式
+  const formData = new FormData()
+  formData.append('batchNo', batchNo)
+  formData.append('channelId', channelId)
 
-// 更新出库批次数量
-export const updateOutboundBatchQuantity = async (
-  serialNumber: string | number,
-  increment: number = 1
-): Promise<OutboundBatch> => {
-  return await apiClient.put(`/outbound/batches/${serialNumber}/quantity`, {
-    increment
+  return await apiClient.post('/dms/outbound/batch', formData , {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 
 // 完成出库批次
-export const completeOutboundBatch = async (serialNumber: string | number): Promise<OutboundBatch> => {
-  return await apiClient.put(`/outbound/batches/${serialNumber}/complete`)
+export const completeOutboundBatch = async (batchId: string): Promise<OutboundBatch> => {
+  return await apiClient.put(`/dms/outbound/complete`,
+    {
+      params: { batchId }
+    }
+  )
 }
 
-// 更新出库批次渠道
-export const updateOutboundBatchChannel = async (
-  serialNumber: string | number,
-  channel: string
-): Promise<OutboundBatch> => {
-  return await apiClient.put(`/outbound/batches/${serialNumber}/channel`, {
-    channel
-  })
-}

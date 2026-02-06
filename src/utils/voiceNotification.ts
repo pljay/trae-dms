@@ -9,13 +9,39 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 class VoiceNotification {
   // 预翻译的常用消息缓存
   private preTranslatedMessages: Record<string, string> = {};
+  
+  // TTS设置缓存
+  private ttsSettings: {
+    volume: number;
+    pitch: number;
+    rate: number;
+  };
+  
+  // 语音播放队列
+  private speakQueue: Array<() => Promise<void>> = [];
+  
+  // 标记是否正在播放语音
+  private isSpeaking: boolean = false;
+  
+  // 标记TTS引擎是否已初始化
+  private isInitialized: boolean = false;
 
   constructor() {
+    // 初始化TTS设置
+    this.ttsSettings = {
+      volume: parseFloat(localStorage.getItem('ttsVolume') || '1.0'),
+      pitch: parseFloat(localStorage.getItem('ttsPitch') || '1.0'),
+      rate: parseFloat(localStorage.getItem('ttsRate') || '2.0')
+    };
+    
     // 预翻译常用消息
     this.preTranslateMessages();
     
     // 监听语言变化事件，更新预翻译消息
     this.watchLanguageChange();
+    
+    // 预初始化TTS引擎
+    this.preInitialize();
   }
 
   /**
@@ -51,6 +77,30 @@ class VoiceNotification {
       }
     );
   }
+  
+  /**
+   * 预初始化TTS引擎
+   */
+  private async preInitialize(): Promise<void> {
+    try {
+      // 预初始化TTS引擎，减少首次调用延迟
+      await TextToSpeech.getSupportedLanguages();
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('Failed to pre-initialize TTS:', error);
+    }
+  }
+  
+  /**
+   * 更新TTS设置缓存
+   */
+  private updateTtsSettings(): void {
+    this.ttsSettings = {
+      volume: parseFloat(localStorage.getItem('ttsVolume') || '1.0'),
+      pitch: parseFloat(localStorage.getItem('ttsPitch') || '1.0'),
+      rate: parseFloat(localStorage.getItem('ttsRate') || '2.0')
+    };
+  }
 
   /**
    * 播放语音提示
@@ -58,38 +108,85 @@ class VoiceNotification {
    * @param isKey 是否为国际化键，默认为true
    * @param _lang 语言代码，默认为当前语言（暂未使用）
    */
-  public async speak(message: string, isKey: boolean = true, _lang?: string): Promise<void> {
-    try {
-      // 快速获取要播放的文本
-      let textToSpeak: string;
-      if (isKey) {
-        // 优先使用预翻译的消息
-        textToSpeak = this.preTranslatedMessages[message] || i18n.global.t(message);
-      } else {
-        textToSpeak = message;
+  public speak(message: string, isKey: boolean = true, _lang?: string): Promise<void> {
+    return new Promise(async (resolve) => {
+      try {
+        // 快速获取要播放的文本
+        let textToSpeak: string;
+        if (isKey) {
+          // 优先使用预翻译的消息
+          textToSpeak = this.preTranslatedMessages[message] || i18n.global.t(message);
+        } else {
+          textToSpeak = message;
+        }
+        
+        // 更新TTS设置
+        this.updateTtsSettings();
+        
+        // 创建播放任务
+        const speakTask = async () => {
+          try {
+            // 确保TTS引擎已初始化
+            if (!this.isInitialized) {
+              await this.preInitialize();
+            }
+            
+            // 使用Capacitor文本转语音插件播放语音
+            await TextToSpeech.speak({
+              text: textToSpeak,
+              rate: this.ttsSettings.rate,
+              pitch: this.ttsSettings.pitch,
+              volume: this.ttsSettings.volume,
+              lang: 'zh-CN'
+            });
+          } catch (error) {
+            console.error('Failed to speak:', error);
+            if (error instanceof Error) {
+              console.error('TTS Error Message:', error.message);
+              console.error('TTS Error Stack:', error.stack);
+            }
+          } finally {
+            this.isSpeaking = false;
+            this.processQueue();
+            resolve();
+          }
+        };
+        
+        // 将任务添加到队列
+        this.speakQueue.push(speakTask);
+        
+        // 如果当前没有正在播放的语音，处理队列
+        if (!this.isSpeaking) {
+          this.processQueue();
+        }
+      } catch (error) {
+        console.error('Failed to add speak task to queue:', error);
+        resolve();
       }
-      
-      // 从本地存储获取用户设置
-      const savedVolume = parseFloat(localStorage.getItem('ttsVolume') || '1.0');
-      const savedPitch = parseFloat(localStorage.getItem('ttsPitch') || '1.0');
-      const savedRate = parseFloat(localStorage.getItem('ttsRate') || '2.0');
-      
-      // 使用Capacitor文本转语音插件播放语音
-      await TextToSpeech.speak({
-        text: textToSpeak,
-        rate: savedRate, // 使用用户保存的语速
-        pitch: savedPitch, // 使用用户保存的语调
-        volume: savedVolume, // 使用用户保存的音量
-        lang: 'zh-CN' // 添加明确的语言代码
-      });
-    } catch (error) {
-      console.error('Failed to speak:', error);
-      // 添加更详细的错误信息
-      if (error instanceof Error) {
-        console.error('TTS Error Message:', error.message);
-        console.error('TTS Error Stack:', error.stack);
-      }
+    });
+  }
+  
+  /**
+   * 处理语音播放队列
+   */
+  private async processQueue(): Promise<void> {
+    if (this.isSpeaking || this.speakQueue.length === 0) {
+      return;
     }
+    
+    this.isSpeaking = true;
+    const task = this.speakQueue.shift();
+    if (task) {
+      await task();
+    }
+  }
+  
+  /**
+   * 直接播放指定文本，无需国际化
+   * @param text 要播放的文本内容
+   */
+  public async speakText(text: string): Promise<void> {
+    return this.speak(text, false);
   }
 
   /**
@@ -97,6 +194,13 @@ class VoiceNotification {
    */
   public speakSuccess(): Promise<void> {
     return this.speak('common.success');
+  }
+
+  /**
+   * 播放警告提示
+   */
+  public speakWarning(): Promise<void> {
+    return this.speak('common.warning');
   }
 
   /**
@@ -128,11 +232,18 @@ class VoiceNotification {
   }
 
   /**
-   * 取消当前语音播放
+   * 取消当前语音播放和队列
    */
   public async cancel(): Promise<void> {
     try {
+      // 清空队列
+      this.speakQueue = [];
+      
+      // 停止当前播放
       await TextToSpeech.stop();
+      
+      // 更新状态
+      this.isSpeaking = false;
     } catch (error) {
       console.error('Failed to cancel speech:', error);
     }
@@ -141,8 +252,21 @@ class VoiceNotification {
   /**
    * 检查语音合成是否支持
    */
-  public isSupported(): boolean {
-    return true; // Capacitor TTS plugin should work on most devices
+  public async isSupported(): Promise<boolean> {
+    try {
+      await TextToSpeech.getSupportedLanguages();
+      return true;
+    } catch (error) {
+      console.error('TTS not supported:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * 清除语音播放队列
+   */
+  public clearQueue(): void {
+    this.speakQueue = [];
   }
 }
 

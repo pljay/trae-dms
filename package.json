@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "dev": "cross-env NODE_ENV=development vite --host",
+    "build": "cross-env NODE_ENV=production vue-tsc && vite build",
+    "preview": "cross-env NODE_ENV=production vite preview --host"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^6.1.0",
@@ -14,13 +14,16 @@
     "@capacitor/android": "^7.0.0",
     "@capacitor/cli": "^7.0.0",
     "@capacitor/core": "^7.0.0",
+    "@capacitor/haptics": "^7.0.3",
     "@capawesome/capacitor-torch": "^7.0.0",
     "@popperjs/core": "^2.11.8",
     "@varlet/ui": "^3.12.3",
     "@zxing/library": "^0.21.3",
     "axios": "^1.13.2",
     "barcode-detector": "^3.0.8",
+    "cordova-plugin-vibration": "^3.1.1",
     "default-passive-events": "^4.0.0",
+    "dotenv": "^17.2.3",
     "pinia": "^3.0.4",
     "vue": "^3.3.4",
     "vue-i18n": "^9.14.5",
@@ -30,6 +33,7 @@
     "@faker-js/faker": "^10.1.0",
     "@types/node": "^25.0.3",
     "@vitejs/plugin-vue": "^4.2.3",
+    "cross-env": "^10.1.0",
     "esbuild": "^0.27.2",
     "mockjs": "^1.1.0",
     "typescript": "^5.0.2",
