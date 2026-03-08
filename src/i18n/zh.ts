@@ -1,159 +1,28 @@
 export default {
-  login: {
-    title: '仓库',
-    subtitle: '欢迎使用仓库管理系统',
-    username: '用户名',
-    password: '密码',
-    remember: '记住账号密码',
-    submit: '登录',
-    required: '请输入{field}',
-    loginSuccess: '登录成功',
-    loginFailed: '登录失败，请检查账号密码'
-  },
-  home: {
-    title: '仓库',
-    modules: {
-      scanIn: '扫描入库',
-      scanInDesc: '扫描包裹单号进行入库操作',
-      packageRecords: '包裹记录',
-      packageRecordsDesc: '查看所有包裹的详细信息',
-      scanOut: '扫描出库',
-      scanOutDesc: '扫描包裹单号进行出库操作',
-      outboundRecords: '出库记录',
-      outboundRecordsDesc: '管理所有出库批次',
-      inboundRecords: '包裹记录',
-      inboundRecordsDesc: '查看所有包裹记录',
-      inboundBatches: '入仓批次',
-      inboundBatchesDesc: '管理所有入仓批次'
-    },
-    stats: {
-      title: '数据统计',
-      totalPackages: '总包裹数',
-      inStock: '已入库',
-      pending: '待出库',
-      totalBatches: '总出库批次'
-    }
-  },
-  scanIn: {
-      title: '扫描入库',
-      scanBarcode: '扫描条码',
-      manualInput: '手动输入',
-      pleaseInputBarcode: '请输入条码',
-      cameraScan: '摄像头扫描',
-      scanSuccess: '扫描成功',
-      scanFailed: '扫描失败',
-      intercepted: '已拦截',
-      interceptMessage: '拦截原因',
-      trackNo: '单号',
-      channel: '渠道',
-      country: '国家',
-      confirm: '确认',
-      cancel: '取消',
-      cameraInitFailed: '摄像头初始化失败',
-      cameraInUse: '摄像头正在使用中',
-      cameraStarted: '摄像头已启动',
-      cameraPermissionDenied: '摄像头权限被拒绝',
-      cameraNotFound: '未找到摄像头设备',
-      cameraNotSupported: '浏览器不支持摄像头功能',
-      notInBatch: '该单号不在入仓批次中，禁止入库',
-      notForecast: '非预报包裹，直接拦截',
-      alreadyInStock: '已入库状态，重复入库',
-      pendingIntercept: '拦截',
-      alreadyIntercepted: '重复拦截',
-      invalidParams: '参数无效',
-      invalidStatus: '{status}状态，禁止再次入库'
-  },
-  packageRecords: {
-    title: '包裹记录',
-    filter: {
-      all: '全部',
-      inStock: '已入库',
-      pending: '待入库',
-      pendingIntercept: '待拦截',
-      intercepted: '已拦截',
-      outOfStock: '已出库',
-      hold: '待处理'
-    },
-    table: {
-      trackNo: '单号',
-      weight: '重量(kg)',
-      dimensions: '尺寸(cm)',
-      status: '状态',
-      channel: '渠道',
-      country: '国家',
-      createdAt: '创建时间',
-      updatedAt: '更新时间'
-    }
-  },
-  scanOut: {
-    title: '扫描出库',
-    batchExists: '已存在出库批次',
-    batchCreated: '批次创建成功',
-    createFailed: '创建批次失败',
-    selectChannelPrompt: '请选择渠道',
-    step1: {
-      title: '第一步：输入出库批次号',
-      serialNumber: '出库流水编号',
-      createNew: '创建新批次',
-      useExisting: '使用现有批次'
-    },
-    step2: {
-      title: '第二步：选择出货渠道',
-      channel: '渠道',
-      selectChannel: '请选择出货渠道'
-    },
-    step3: {
-      title: '第三步：扫描出库',
-      scan: '扫描包裹',
-      scannedCount: '已扫描: {count}',
-      totalCount: '总数量: {total}',
-      complete: '完成出库',
-      noScanned: '尚未扫描任何包裹'
-    },
-    scanSuccess: '扫描成功',
-    batchAutoLoaded: '批次信息已自动加载',
-    batchNotFound: '未找到该批次信息'
-  },
-  outboundRecords: {
-    title: '出库记录',
-    addBatch: '新增出库批次',
-    filter: {
-      all: '全部',
-      inProgress: '出库中',
-      completed: '已出库'
-    },
-    table: {
-      serialNumber: '编号',
-      channel: '渠道',
-      expectedQuantity: '预计数量',
-      actualQuantity: '实际数量',
-      quantity: '数量',
-      status: '状态',
-      createdAt: '创建时间',
-      updatedAt: '更新时间',
-      action: '操作'
-    },
-    actions: {
-      continue: '继续出库',
-      completed: '已完成',
-      scanOut: '出库',
-      ship: '发货'
-    },
-    shipSuccess: '发货成功'
-  },
+  // 公共配置
   common: {
     logout: '退出登录',
     loading: '加载中...',
     success: '操作成功',
     error: '操作失败',
+    warning: '警告',
     confirm: '确认',
     cancel: '取消',
     back: '返回',
     next: '下一步',
     noMoreData: '没有更多数据了',
     noData: '暂无数据',
-    search: '搜索',
-    searchPlaceholder: '请输入单号、渠道或国家搜索',
+    search: {
+      title: '搜索',
+      placeholder: '请输入搜索关键词',
+      error: '搜索失败，请重试',
+      success: '搜索成功',
+      noResults: '没有找到匹配的结果'
+    },
+    placeholder: {
+      trackNo: '请输入包裹单号',
+      batchNo: '请输入批次号',
+    },
     welcome: '欢迎',
     chinese: '中文',
     english: 'English',
@@ -163,26 +32,10 @@ export default {
     darkTheme: '深色模式',
     userProfile: '用户信息',
     settings: '设置',
-    help: '帮助'
+    help: '帮助',
   },
-  inboundRecords: {
-    title: '包裹记录',
-    filter: {
-      all: '全部',
-      inProgress: '入库中',
-      completed: '已完成'
-    },
-    table: {
-      trackNo: '单号',
-      weight: '重量(kg)',
-      dimensions: '尺寸(cm)',
-      status: '状态',
-      channel: '渠道',
-      country: '国家',
-      createdAt: '创建时间',
-      updatedAt: '更新时间'
-    }
-  },
+
+  // 状态配置
   status: {
     // 包裹状态
     package: {
@@ -208,6 +61,8 @@ export default {
       completed: '已出库'
     }
   },
+
+  // API错误配置
   api: {
     error: {
       badRequest: '请求参数错误',
@@ -220,8 +75,142 @@ export default {
       unknownError: '未知错误'
     }
   },
-  inboundBatches: {
-    title: '入仓批次',
+
+  // 扫描配置
+  scan: {
+    title: '扫一扫',
+    barcode: '包裹单号',
+    pointCamera: '将二维码/条码放入框内，即可自动扫描',
+    help: '支持二维码和一维码',
+    lightOn: '开启手电筒',
+    lightOff: '关闭手电筒',
+    album: '从相册选择',
+    manualInput: '手动输入',
+    enterCode: '请输入条码',
+    scanSuccess: '扫描成功',
+    scanFailed: '扫描失败',
+    camera: '扫描包裹单号',
+    errorReason: '扫描失败原因',
+    unknownError: '未知错误',
+    cameraPermissionDenied: '摄像头权限被拒绝',
+    flashlightError: '手电筒操作失败',
+    albumNotSupported: '暂不支持相册扫描',
+    scanTimeout: '扫描超时，请重试',
+    cameraStarted: '摄像头已启动',
+    cameraNotSupported: '浏览器不支持摄像头功能',
+    cameraNotFound: '未找到摄像头设备',
+    cameraInUse: '摄像头正在使用中',
+    message: {
+      scanFailed: '扫描失败，请重试',
+      scanSuccess: '扫描成功',
+      notForecast: '包裹未预报',
+      duplicateInbound: '已入库状态，重复入库',
+      intercept: '待拦截状态，需要拦截',
+      duplicateIntercepted: '已拦截状态，重复拦截',
+      duplicateOutbound: '已出库状态，重复出库',
+      notInbound: '包裹未入库，不能出库',
+      channelErrorOutbound: '渠道错误，不能出库',
+      notInBatch: '包裹不在当前批次',
+      invalidParams: '无效参数',
+      invalidStatus: '无效状态'
+    }
+  },
+
+  // 语音设置配置
+  voiceSetting: {
+    title: '语音设置',
+    volume: '音量',
+    pitch: '语调',
+    rate: '语速',
+    voice: '音色',
+    defaultVoice: '默认音色',
+    test: '测试语音',
+    testText: '这是一条语音测试消息',
+    testFailed: '语音测试失败'
+  },
+
+  // 视图文件配置
+
+  // LoginView.vue
+  loginView: {
+    title: '仓库',
+    subtitle: '欢迎使用仓库管理系统',
+    username: '用户名',
+    password: '密码',
+    remember: '记住账号密码',
+    submit: '登录',
+    required: '请输入{field}',
+    loginSuccess: '登录成功',
+    loginFailed: '登录失败，请检查账号密码',
+    alreadyLoggedIn: '您已登录，无需重复登录'
+  },
+
+  // HomeView.vue
+  homeView: {
+    title: '仓库',
+    modules: {
+      inboundOperate: '扫描入库',
+      inboundOperateDesc: '扫描包裹单号进行入库操作',
+      packageList: '包裹列表',
+      packageListDesc: '查看所有包裹的详细信息',
+      outboundOperate: '扫描出库',
+      outboundOperateDesc: '扫描包裹单号进行出库操作',
+      outboundList: '出库记录',
+      outboundListDesc: '管理所有出库批次',
+      inboundList: '入仓批次',
+      inboundListDesc: '管理所有入仓批次'
+    },
+    stats: {
+      title: '数据统计',
+      inbound: '待入库',
+      inStock: '已入库',
+      pendingIntercept: '待拦截',
+      holding: '待处理'
+    }
+  },
+
+  // PackageListView.vue
+  packageListView: {
+    title: '包裹列表',
+    filter: {
+      all: '全部',
+      inStock: '已入库',
+      pending: '待入库',
+      pendingIntercept: '待拦截',
+      intercepted: '已拦截',
+      outOfStock: '已出库',
+      hold: '待处理'
+    },
+    table: {
+      trackNo: '单号',
+      weight: '重量(kg)',
+      dimensions: '尺寸(cm)',
+      status: '状态',
+      channel: '渠道',
+      country: '国家',
+      createdAt: '创建时间',
+      updatedAt: '更新时间'
+    }
+  },
+
+  // InboundBatchListView.vue
+  inboundBatchListView: {
+    title: '入仓批次列表',
+    filter: {
+      all: '全部',
+      inProgress: '入仓中',
+      completed: '已入仓'
+    },
+    table: {
+      trackNo: '单号',
+      weight: '重量(kg)',
+      dimensions: '尺寸(cm)',
+      status: '状态',
+      channel: '渠道',
+      country: '国家',
+      createdAt: '创建时间',
+      updatedAt: '更新时间'
+    },
     batchDetail: '入仓批次详情',
     batchNo: '批次号',
     status: '状态',
@@ -250,27 +239,168 @@ export default {
       inboundProgress: '入仓进度:'
     }
   },
-  scan: {
-    title: '扫一扫',
-    pointCamera: '将二维码/条码放入框内，即可自动扫描',
-    help: '支持二维码和一维码',
-    lightOn: '开启手电筒',
-    lightOff: '关闭手电筒',
-    album: '从相册选择',
-    manualInput: '手动输入',
-    enterCode: '请输入条码',
+
+  // InboundBatchDetailView.vue
+  inboundBatchDetailView: {
+    title: '入仓批次详情',
+    batchInfo: '批次信息',
+    packageRecords: '包裹记录',
+    batchNo: '批次号',
+    status: '状态',
+    createdAt: '创建时间',
+    inboundProgress: '入仓进度',
+    channelProgress: '渠道进度',
+    noPackageRecords: '暂无包裹记录',
+    noChannelInfo: '暂无渠道信息',
+    trackNo: '包裹单号',
     scanSuccess: '扫描成功',
     scanFailed: '扫描失败',
-    cameraPermissionDenied: '摄像头权限被拒绝',
-    flashlightError: '手电筒操作失败',
-    albumNotSupported: '暂不支持相册扫描',
-    scanTimeout: '扫描超时，请重试',
-    cameraStarted: '摄像头已启动',
-    cameraNotSupported: '浏览器不支持摄像头功能',
-    cameraNotFound: '未找到摄像头设备',
-    cameraInUse: '摄像头正在使用中'
+    labels: {
+      batchNo: '批次号:',
+      status: '状态:',
+      createdAt: '创建时间:',
+      inboundProgress: '入仓进度:'
+    },
   },
-  voiceSetting: {
+
+  // InboundOperateView.vue
+  inboundOperateView: {
+    title: '入仓操作',
+    batchInfo: '批次信息',
+    scan: '扫描入库',
+    batchNo: '批次号',
+    trackNo: '包裹单号',
+    status: '状态',
+    channel: '渠道',
+    quantity: '数量',
+    weight: '重量(kg)',
+    dimensions: '尺寸(cm)',
+    manualInput: '手动输入包裹单号',
+    scannedCount: '已扫描: {count}',
+    scanSuccess: '扫描成功',
+    scanFailed: '扫描失败',
+    notInBatch: '该单号不在入仓批次中，禁止入库',
+    notForecast: '非预报包裹，直接拦截',
+    alreadyInStock: '已入库状态，重复入库',
+    pendingIntercept: '拦截',
+    alreadyIntercepted: '重复拦截',
+    invalidParams: '参数无效',
+    invalidStatus: '{status}状态，禁止再次入库'
+  },
+
+  // OutboundBatchListView.vue
+  outboundBatchListView: {
+    title: '出库批次列表',
+    addBatch: '新增出库批次',
+    filter: {
+      all: '全部',
+      inProgress: '出库中',
+      completed: '已出库'
+    },
+    table: {
+      serialNumber: '编号',
+      channel: '渠道',
+      expectedQuantity: '预计数量',
+      actualQuantity: '实际数量',
+      quantity: '数量',
+      status: '状态',
+      createdAt: '创建时间',
+      updatedAt: '更新时间',
+      action: '操作'
+    },
+    actions: {
+      continue: '继续出库',
+      completed: '已完成',
+      scanOut: '出库',
+      ship: '发货'
+    },
+    shipSuccess: '发货成功'
+  },
+
+
+
+  // OutboundOperateListView.vue
+  outboundOperateListView: {
+    title: '出库操作列表',
+    list: {
+      serialNumber: '出库流水编号',
+      channel: '渠道',
+      actualQuantity: '实际数量',
+      status: '状态',
+      createdAt: '创建时间',
+      updatedAt: '更新时间',
+      action: '操作'
+    },
+    action: {
+      add: '新增出库批次',
+      continue: '继续出库',
+      completed: '已完成',
+      scanOut: '出库',
+      complate: '发货'
+    },
+    confirmComplate: '确定要发货吗？',
+    form: {
+      title: '新增出库批次',
+      step1: {
+        title: '步骤1：输入出库批次号',
+        serialNumber: '请输入出库批次号'
+      },
+      step2: {
+        title: '步骤2：选择渠道',
+        selectChannel: '请选择渠道'
+      }
+    },
+    filter: {
+      all: '全部',
+      inProgress: '出库中',
+      completed: '已出库'
+    },
+    batchCreated: '出库批次创建成功',
+    createFailed: '出库批次创建失败'
+  },
+  // OutboundOperateView.vue
+  outboundOperateDetailView: {
+    title: '出库操作',
+    batchInfo: '批次信息',
+    serialNumber: '出库流水编号',
+    channel: '渠道',
+    quantity: '数量',
+    scannedCount: '已扫描',
+    complete: '发货',
+    confirmComplate: '确定要发货吗？',
+    batchNotFound: '批次不存在',
+    confirmManualInput: '确定要手动输入出库吗？',
+    sacn: {
+      scanSuccess: '扫描成功',
+      scanFailed: '扫描失败',
+      alreadyOutStock: '已出库状态，重复出库',
+      notInOutStock: '未入库禁止出库',
+      channelErrorOutStock: '渠道错误，禁止出库',
+      invalidParams: '参数无效',
+      invalidStatus: '{status}状态，禁止再次出库'
+    }
+
+  },
+
+  // ScanView.vue
+  scanView: {
+    title: '扫描',
+    scanBarcode: '扫描条码',
+    manualInput: '手动输入',
+    pleaseInputBarcode: '请输入条码',
+    cameraScan: '摄像头扫描',
+    confirm: '确认',
+    cancel: '取消',
+    cameraInitFailed: '摄像头初始化失败',
+    cameraInUse: '摄像头正在使用中',
+    cameraStarted: '摄像头已启动',
+    cameraPermissionDenied: '摄像头权限被拒绝',
+    cameraNotFound: '未找到摄像头设备',
+    cameraNotSupported: '浏览器不支持摄像头功能'
+  },
+
+  // VoiceSettingView.vue
+  voiceSettingView: {
     title: '语音设置',
     volume: '音量',
     pitch: '语调',
@@ -279,4 +409,4 @@ export default {
     testText: '这是一条语音测试消息',
     testFailed: '语音测试失败'
   }
-};
+}

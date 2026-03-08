@@ -4,6 +4,7 @@ import { Channel } from '../types'
 import { Snackbar } from '@varlet/ui'
 import i18n from '@/i18n'
 
+
 export const useChannelStore = defineStore('channel', {
   state: () => ({
     channels: [] as Channel[],
@@ -13,6 +14,18 @@ export const useChannelStore = defineStore('channel', {
   getters: {
     allChannels: (state) => state.channels,
     getChannelById: (state) => (id: string | number) => {
+      // 存在逗号分隔多个渠道ID，返回所有渠道
+      if (typeof id === 'string' && id.includes(',')) {
+        const channels = state.channels.filter(channel => id.split(',').includes(channel.id.toString()))
+        const channelCodes = channels.map(channel => channel.code || '')
+        const channelIds = channels.map(channel => channel.id || '')
+        const channelNames = channels.map(channel => channel.name || '')
+        return {
+          id: channelIds.join(','),
+          code: channelCodes.join(','),
+          name: channelNames.join(',')
+        } 
+      }
       return state.channels.find(channel => channel.id === id)
     }
   },
@@ -20,6 +33,7 @@ export const useChannelStore = defineStore('channel', {
   actions: {
     // 加载渠道列表
     async loadChannels() {
+      if (this.loading) return this.channels
       this.loading = true
       try {
         const channels = await getChannels()
@@ -36,14 +50,11 @@ export const useChannelStore = defineStore('channel', {
 
     // 根据渠道ID获取渠道详情
     async fetchChannelById(id: string | number) {
-      // 先从缓存中查找
-      if(this.allChannels.length === 0) {
+      // 确保渠道数据已加载
+      if (this.channels.length === 0) {
         await this.loadChannels()
       }
-      const cachedChannel = this.getChannelById(id)
-      if (cachedChannel) {
-         return cachedChannel
-      }
+      return this.getChannelById(id)
     }
   }
 })

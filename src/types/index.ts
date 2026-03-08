@@ -47,16 +47,18 @@ export enum ErrorCode {
   DUPLICATE_INTERCEPTED = 1002, // 已拦截状态，重复拦截
 
   // 入库相关错误
-  NOT_FORECAST_PACKAGE = 1010, // 非预报包裹
-  DUPLICATE_IN_STOCK = 1011, // 已入库状态，重复入库
+  NOT_FORECAST   = 1010, // 非预报包裹
+  DUPLICATE_INBOUND = 1011, // 已入库状态，重复入库
 
 
 
 
   // 出库相关错误
-  DUPLICATE_OUT_STOCK = 1020, // 已出库状态，重复出库
+  DUPLICATE_OUTBOUND = 1020, // 已出库状态，重复出库
   //未入库禁止出库
-  NOT_INOUT_STOCK = 1021, // 未入库禁止出库
+  NOT_INBOUND = 1021, // 未入库禁止出库
+  
+  CHANNEL_ERROR_OUTBOUND = 1022, // 渠道错误，禁止出库
   
   // 其他业务错误
   NOT_IN_BATCH = 2001, // 不在批次内
@@ -80,15 +82,17 @@ export interface InboundBatch {
   packages?: Package[];      // 关联的包裹列表（1:n父子关系）
   createdAt?: string | Date; // 创建时间
   updatedAt?: string | Date; // 更新时间
+  createTime?: string; // 创建时间
+  updateTime?: string; // 更新时间
 }
 
 // 入仓批次渠道进度数据类型
-export interface InboundBatchChannel {
+export interface BatchChannel {
   batchId: string | number; // 批次ID
   channelCode: string;           // 渠道名称
   channelId: string;           // 渠道
   expectQuantity: number;  // 预报数量
-  inboundQuantity: number;   // 入仓数量
+  actualQuantity: number;   // 入仓数量
   outboundQuantity: number;   // 出仓数量
 }
 
@@ -121,11 +125,14 @@ export interface OutboundBatch {
   serialNumber: string;      // 出库流水编号
   status: OutboundStatus;    // 状态
   quantity: number;          // 数量
+  pieces: number;          // 数量
   channelId?: string;      // 渠道
   channelCode?: string;          // 渠道
   packages?: Package[];      // 关联的包裹列表（1:n父子关系）
   createdAt?: string; // 创建时间
   updatedAt?: string; // 更新时间
+  createTime?: string; // 创建时间
+  updateTime?: string; // 更新时间
 }
 
 // 登录用户信息
@@ -169,9 +176,9 @@ export interface PaginationResponse<T> {
 // 包裹状态统计数据类型
 export interface PackageStatsCount {
   intoCount: number;           // 已入库数量
-  interceptedCount: number;        // 已拦截数量
-  holdCount: number;       // 待处理数量
-  totalCount: number;           // 总数量
+  pendingInterceptedCount: number;        // 已拦截数量
+  holdingCount: number;       // 待处理数量
+  inboundCount: number;           // 总数量
 }
 
 

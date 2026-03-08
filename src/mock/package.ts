@@ -180,7 +180,7 @@ export default [
       const now = new Date().toISOString()
       
       if (!pkg) {
-        return responseHandler(null, '非预报包裹，直接拦截', ErrorCode.NOT_FORECAST_PACKAGE)
+        return responseHandler(null, '非预报包裹，直接拦截', ErrorCode.NOT_FORECAST)
       }
       
       switch (pkg.status) {
@@ -190,7 +190,7 @@ export default [
 
           return responseHandler(pkg, '扫描入库成功', 200)
         case PackageStatus.IN_STOCK:
-          return responseHandler(pkg, '已入库状态，重复入库', ErrorCode.DUPLICATE_IN_STOCK)
+          return responseHandler(pkg, '已入库状态，重复入库', ErrorCode.DUPLICATE_INBOUND)
         case PackageStatus.PENDING_INTERCEPT:
           pkg.status = PackageStatus.INTERCEPTED
 

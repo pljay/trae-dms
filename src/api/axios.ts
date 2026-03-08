@@ -19,17 +19,24 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true // 允许携带跨域凭证
 })
 
+//拦截器配置 
 // 请求拦截器
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    //单独处理 auth 登录请求 不添加 token 认证信息
+    if (config.url?.includes('/auth') || config.url?.includes('/login')) {
+      return config
+    }
     // 可以在这里添加认证信息，如 token
     const token = localStorage.getItem('token')
-    console.log('token', token)
     if (token) {
       // 确保headers是AxiosRequestHeaders类型
       config.headers = config.headers || {} as AxiosRequestHeaders
       // 使用类型断言确保TypeScript识别为正确类型
       config.headers.set('X-access-token', `${token}`)
+    }else{
+      // 未登录 跳转登录页
+      window.location.href = '/login'
     }
     return config
   },
@@ -41,7 +48,7 @@ apiClient.interceptors.request.use(
 // 响应拦截器
 apiClient.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
-   
+
     // 统一处理响应数据
     const { code, message, result } = response.data
     if (code === 200) {

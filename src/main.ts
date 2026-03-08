@@ -40,9 +40,3 @@ app.use(i18n)
 // Initialize application data after mounting
 app.mount('#app')
 
-// Import and call initialize function
-export const initializeApp = async () => {
-  const { initializeAppData } = await import('./utils/init')
-  await initializeAppData()
-}
-

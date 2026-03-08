@@ -20,11 +20,8 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('user', JSON.stringify(user))
       if (user.remember) {
         localStorage.setItem('username', user.username)
-        // 不要在localStorage中存储明文密码
-        // localStorage.setItem('password', user.password)
       } else {
         localStorage.removeItem('username')
-        // localStorage.removeItem('password')
       }
     },
     logout() {

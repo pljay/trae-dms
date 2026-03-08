@@ -1,14 +1,13 @@
 <template>
-  <div class="view-content">
+  <div >
     <!-- 搜索和筛选区域 -->
-    <div class="search-filter-section">
       <!-- 搜索框-->
       <div class="search-box">
-        <var-input v-model="searchKeyword" :placeholder="t('common.searchPlaceholder')" clearable prepend-icon="search"
-          @clear="handleSearch" @keyup.enter="handleSearch">
+        <var-input v-model="searchKeyword" :placeholder="t('common.placeholder.batchNo')" clearable prepend-icon="search"
+          @clear="handleSearch">
           <template #append-icon>
             <var-button type="primary" @click="handleSearch">
-              {{ $t('common.search') }}
+              {{ $t('common.search.placeholder') }}
             </var-button>
           </template>
         </var-input>
@@ -18,8 +17,8 @@
       <div class="filter-section">
         <var-tabs elevation color="var(--color-primary)" active-color="var(--color-on-primary)"
           inactive-color="var(--color-on-info)" v-model:active="activeTab" :safe-area="true">
-          <var-tab name="inProgress">{{ $t('outboundRecords.filter.inProgress') }}</var-tab>
-          <var-tab name="completed">{{ $t('outboundRecords.filter.completed') }}</var-tab>
+          <var-tab name="inProgress">{{ $t('outboundBatchListView.filter.inProgress') }}</var-tab>
+          <var-tab name="completed">{{ $t('outboundBatchListView.filter.completed') }}</var-tab>
         </var-tabs>
       </div>
       <var-table :scroller-height="tableScrollerHeight" ref="tableRef">
@@ -29,25 +28,23 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in displayedBatches" :key="row.id">
+          <tr v-for="row in batches" :key="row.id">
             <td>{{ row.serialNumber }}</td>
             <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{
               getStatusText(row.status)
                 }}</var-chip></td>
             <td>{{ row.channelCode }}</td>
-            <td>{{ row.quantity }}</td>
-            <td>{{ formatDate(row.createdAt) }}</td>
-            <td>{{ formatDate(row.updatedAt) }}</td>
+            <td>{{ row.quantity || row.pieces }}</td>
+            <td>{{ row.createTime }}</td>
+            <td>{{ row.updateTime }}</td>
           </tr>
         </tbody>
       </var-table>
     </div>
-
-  </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue';
+  import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useOutboundStore } from '@/stores/outbound';
   import { OutboundStatus, OutboundBatch } from '@/types';
@@ -58,7 +55,7 @@
   const { t } = useI18n();
   const outboundStore = useOutboundStore();
   const titleStore = useTitleStore()
-  titleStore.setTitle('outboundRecords.title')
+  titleStore.setTitle('outboundBatchListView.title')
 
   // 搜索和筛选相关
   const searchKeyword = ref('');
@@ -77,28 +74,13 @@
 
   // 表格列配置
   const columns = [
-    { title: t('outboundRecords.table.serialNumber'), key: 'serialNumber', width: 200 },
-    { title: t('outboundRecords.table.status'), key: 'status', width: 200 },
-    { title: t('outboundRecords.table.channel'), key: 'channel', width: 150 },
-    { title: t('outboundRecords.table.quantity'), key: 'quantity', width: 100 },
-    { title: t('outboundRecords.table.createdAt'), key: 'createdAt', width: 180 },
-    { title: t('outboundRecords.table.updatedAt'), key: 'updatedAt', width: 180 },
+    { title: t('outboundBatchListView.table.serialNumber'), key: 'serialNumber', width: 200 },
+    { title: t('outboundBatchListView.table.status'), key: 'status', width: 200 },
+    { title: t('outboundBatchListView.table.channel'), key: 'channel', width: 150 },
+    { title: t('outboundBatchListView.table.quantity'), key: 'quantity', width: 100 },
+    { title: t('outboundBatchListView.table.createdAt'), key: 'createdAt', width: 180 },
+    { title: t('outboundBatchListView.table.updatedAt'), key: 'updatedAt', width: 180 },
   ];
-
-  // 显示的批次列表
-  const displayedBatches = computed(() => {
-    let result = batches.value;
-    // 搜索筛选
-    if (searchKeyword.value) {
-      const keyword = searchKeyword.value.toLowerCase();
-      result = result.filter(batch =>
-        batch.serialNumber.toLowerCase().includes(keyword) ||
-        (batch.channelCode && (batch.channelCode as string).toLowerCase().includes(keyword))
-      );
-    }
-
-    return result;
-  });
 
   // 根据tab获取对应的状态
   const getStatusFromTab = (tab: string): OutboundStatus | undefined => {
@@ -123,9 +105,9 @@
     const status = getStatusFromTab(activeTab.value)
     let response: any
     if (status === OutboundStatus.IN_PROGRESS) {
-      response = await outboundStore.fetchBatches(currentPage, pageSize.value, { status: '0', ...params })
+      response = await outboundStore.fetchBatches(currentPage, pageSize.value, { status: '0', column: 'createTime', order: 'desc', ...params })
     } else if (status === OutboundStatus.COMPLETED) {
-      response = await outboundStore.fetchBatches(currentPage, pageSize.value, { status: '1', ...params })
+      response = await outboundStore.fetchBatches(currentPage, pageSize.value, { status: '1', column: 'createTime', order: 'desc', ...params })
     }
     response.records.forEach((item: OutboundBatch) => {
       item.status = status as OutboundStatus
@@ -176,8 +158,8 @@
 
   // 计算表格自适应高度
   const calculateTableHeight = () => {
-    const height = calculateRemainHeight(['.search-section', '.filter-section'])
-    tableScrollerHeight.value = height + 'px'
+    const height = calculateRemainHeight(['.search-box', '.filter-section'])
+    tableScrollerHeight.value = height  + 'px'
   }
 
   // 监听窗口大小变化
@@ -214,7 +196,7 @@
       currentPage.value = 1
       hasMore.value = true
       try {
-        await loadData(currentPage.value, { serialNumber: searchKeyword.value })
+        await loadData(currentPage.value, { serialNumber: '*'+searchKeyword.value+'*' })
       } catch (error) {
         console.error('Failed to search:', error)
       }
@@ -227,16 +209,6 @@
   watch(activeTab, () => {
     loadInitialData()
   })
-
-  // 监听搜索关键词变化，延迟搜索
-  watch(searchKeyword, (newVal, oldVal) => {
-    if (newVal !== oldVal) {
-      const timer = setTimeout(() => {
-        handleSearch();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  });
 
   // 获取状态标签类
   const getStatusTagType = (status: string) => {
@@ -262,19 +234,7 @@
     }
   };
 
-  // 格式化日期
-  const formatDate = (date?: string | Date) => {
-    if (!date) return '';
-    // 将字符串转换为Date对象
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+
 
   // 组件挂载时设置
   onMounted(async () => {
@@ -404,10 +364,42 @@
     font-weight: 600;
     color: var(--text-primary);
     padding: 12px 16px;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   :deep(.var-table td) {
     padding: 12px 16px;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 768px) {
+    :deep(.var-table th) {
+      font-size: 12px;
+      padding: 10px 8px;
+    }
+    
+    :deep(.var-table td) {
+      font-size: 12px;
+      padding: 10px 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    :deep(.var-table th) {
+      font-size: 11px;
+      padding: 8px 6px;
+    }
+    
+    :deep(.var-table td) {
+      font-size: 11px;
+      padding: 8px 6px;
+    }
   }
 
   :deep(.var-table tbody tr:hover) {

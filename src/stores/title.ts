@@ -4,7 +4,7 @@ import i18n from '@/i18n';
 
 export const useTitleStore = defineStore('title', () => {
   // 存储标题的键，而不是翻译后的固定字符串
-  const titleKey = ref('home.title');
+  const titleKey = ref('homeView.title');
   
   // 监听标题键变化，当标题键或语言变化时更新文档标题
   watch(

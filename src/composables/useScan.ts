@@ -720,22 +720,34 @@ export function useScan() {
    * @param batchId 批次ID
    * @returns 是否扫描成功
    */
-  const handleScanOut = async (code: string, batchId: string): Promise<boolean> => {
+  const handleScanOut = async (code: string, batchId: string): Promise<ScanResult> => {
     console.log('扫描到条码:', code)
-    
     try {
-      const success = await packageStore.scanOut(code, batchId)
-      if (success) {
+      const result = await packageStore.scanOut(code, batchId)
+      if (result) {
         scanCount.value++
         // 不再显示重复通知，因为 packageStore.scanOut 已经处理了通知
-        return true
-      } else {
-        // 不再显示重复通知，因为 packageStore.scanOut 已经处理了通知
-        return false
+        return {
+          success: true,
+          data: result,
+          status: 'success'
+        }
+     }else{
+        return {
+          success: false,
+          data: packageStore?.scanError?.pkg || null,
+          status: (packageStore?.scanError?.type as 'error' | 'warning') || 'error',
+          message: packageStore?.scanError?.message || t('scanIn.scanFailed')
+        }
       }
     } catch (error) {
-      // 不再显示重复通知，因为 packageStore.scanOut 已经处理了通知
-      return false
+      // 不再显示重复通知，因为 packageStore.scanIn 已经处理了通知
+      return {
+          success: false,
+          data: packageStore?.scanError?.pkg || null,
+          status: (packageStore?.scanError?.type as 'error' | 'warning') || 'error',
+          message: packageStore?.scanError?.message || t('scanIn.scanFailed')
+        }
     }
   }
 
@@ -803,7 +815,7 @@ export function useScan() {
     [ScanErrorType.CAMERA_IN_USE]: t('scan.cameraInUse'),
     [ScanErrorType.CAMERA_NOT_SUPPORTED]: t('scan.cameraNotSupported'),
     [ScanErrorType.SCAN_FAILED]: t('scan.scanFailed'),
-    [ScanErrorType.NETWORK_ERROR]: t('common.networkError'),
+    [ScanErrorType.NETWORK_ERROR]: t('api.error.networkError'),
     [ScanErrorType.UNKNOWN_ERROR]: t('common.error')
   }
 

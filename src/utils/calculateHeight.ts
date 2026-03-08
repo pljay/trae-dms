@@ -24,8 +24,8 @@
     // 预留一些边距
     const margin = 32 // 16px margin top and bottom
     
-    // 计算剩余高度
-    const remainingHeight = viewportHeight - navHeight - usedHeight - margin
+    // 计算剩余高度 16外部边距
+    const remainingHeight = viewportHeight - navHeight - usedHeight - margin -16
     console.log('remainingHeight', remainingHeight)
     
     // 设置表格滚动高度，确保最小高度

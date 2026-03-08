@@ -1,5 +1,5 @@
 import apiClient from './axios'
-import type { OutboundBatch, PaginationResponse } from '../types'
+import type { OutboundBatch, BatchChannel, PaginationResponse } from '../types'
 
 // 获取所有出库批次
 export const getAllOutboundBatches = async (
@@ -35,10 +35,21 @@ export const createOutboundBatch = async (batchNo: string, channelId: string): P
 
 // 完成出库批次
 export const completeOutboundBatch = async (batchId: string): Promise<OutboundBatch> => {
-  return await apiClient.put(`/dms/outbound/complete`,
-    {
-      params: { batchId }
+  //表单数据
+  const formData = new FormData()
+  formData.append('batchId', batchId)
+
+  return await apiClient.post(`/dms/outbound/complete`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
     }
-  )
+  })
+}
+
+// 获取批次渠道进度
+export const getOutboundBatchChannels = async (id: string | number): Promise<BatchChannel[]> => {
+  return await apiClient.get(`/dms/outbound/parcel/groupByChannel`, {
+    params: { batchId: id }
+  })
 }
 

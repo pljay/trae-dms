@@ -1,12 +1,12 @@
 <template>
-  <div class="view-content">
+  <div>
     <!-- 搜索和筛选区域 -->
     <div class="search-section">
-      <var-input v-model="searchKeyword" :placeholder="t('common.searchPlaceholder')" :delay="300"
+      <var-input v-model="searchKeyword" :placeholder="t('common.placeholder.trackNo')" :delay="300"
         @search="handleSearch">
         <template #append-icon>
-          <var-button type="primary" @click="handleSearch" :disabled="!searchKeyword.trim()">
-            {{ $t('common.search') }}
+          <var-button type="primary" @click="handleSearch">
+            {{ $t('common.search.title') }}
           </var-button>
         </template>
       </var-input>
@@ -16,20 +16,20 @@
       <var-tabs elevation color="var(--color-primary)" active-color="var(--color-on-primary)"
         inactive-color="var(--color-on-info)" v-model:active="activeTab" :safe-area="true">
         <var-tab name="in_stock">
-          {{ $t('packageRecords.filter.inStock') }} <span class="tab-count">({{ tabCounts.in_stock }})</span>
+          {{ $t('packageListView.filter.inStock') }} <span class="tab-count">({{ tabCounts.in_stock }})</span>
         </var-tab>
         <var-tab name="pending">
-          {{ $t('packageRecords.filter.pending') }} <span class="tab-count">({{ tabCounts.pending }})</span>
+          {{ $t('packageListView.filter.pending') }} <span class="tab-count">({{ tabCounts.pending }})</span>
         </var-tab>
         <var-tab name="pending_intercept">
-          {{ $t('packageRecords.filter.pendingIntercept') }} <span class="tab-count">({{ tabCounts.pending_intercept
+          {{ $t('packageListView.filter.pendingIntercept') }} <span class="tab-count">({{ tabCounts.pending_intercept
           }})</span>
         </var-tab>
         <var-tab name="intercepted">
-          {{ $t('packageRecords.filter.intercepted') }} <span class="tab-count">({{ tabCounts.intercepted }})</span>
+          {{ $t('packageListView.filter.intercepted') }} <span class="tab-count">({{ tabCounts.intercepted }})</span>
         </var-tab>
         <var-tab name="hold">
-          {{ $t('packageRecords.filter.hold') }} <span class="tab-count">({{ tabCounts.hold }})</span>
+          {{ $t('packageListView.filter.hold') }} <span class="tab-count">({{ tabCounts.hold }})</span>
         </var-tab>
       </var-tabs>
     </div>
@@ -42,7 +42,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in displayedPackages" :key="row.id">
+        <tr v-for="row in packages" :key="row.id">
           <td>{{ row.trackNo || row.no }}</td>
           <td><var-chip :type="getStatusTagType(row.status)" style="white-space: nowrap;">{{ getStatusText(row.status)
               }}</var-chip></td>
@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
+  import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { usePackageStore } from '@/stores/package'
   import { PackageStatus, Package } from '@/types'
@@ -68,7 +68,7 @@
 
   const packageStore = usePackageStore()
   const titleStore = useTitleStore()
-  titleStore.setTitle('packageRecords.title')
+  titleStore.setTitle('packageListView.title')
 
   // 搜索和筛选相关
   const searchKeyword = ref('')
@@ -96,25 +96,13 @@
 
   // 表格列配置
   const columns = [
-    { title: t('packageRecords.table.trackNo'), key: 'trackNo', width: 200 },
-    { title: t('packageRecords.table.status'), key: 'status', width: 300 },
-    { title: t('packageRecords.table.channel'), key: 'channel', width: 150 },
-    { title: t('packageRecords.table.country'), key: 'country', width: 120 },
-    { title: t('packageRecords.table.createdAt'), key: 'createdAt', width: 180 },
+    { title: t('packageListView.table.trackNo'), key: 'trackNo', width: 200 },
+    { title: t('packageListView.table.status'), key: 'status', width: 300 },
+    { title: t('packageListView.table.channel'), key: 'channel', width: 150 },
+    { title: t('packageListView.table.country'), key: 'country', width: 120 },
+    { title: t('packageListView.table.createdAt'), key: 'createdAt', width: 180 },
   ]
 
-  // 显示的包裹列表
-  const displayedPackages = computed(() => {
-    let result = packages.value
-    if (searchKeyword.value) {
-      const keyword = searchKeyword.value.toLowerCase()
-      result = result.filter(pkg =>
-        pkg.trackNo.toLowerCase().includes(keyword) ||
-        (pkg?.channelCode && pkg.channelCode.toLowerCase().includes(keyword))
-      )
-    }
-    return result
-  })
 
   // 根据tab获取对应的状态
   const getStatusFromTab = (tab: string): PackageStatus | undefined => {
@@ -142,14 +130,14 @@
     hasMore.value = true
     noMore.value = false
     try {
-      await loadData(currentPage.value)
+      await loadData(currentPage.value, searchKeyword.value)
     } catch (error) {
       console.error('Failed to load initial data:', error)
     }
   }
 
   // 加载数据
-  const loadData = async (currentPage: number) => {
+  const loadData = async (currentPage: number, searchKeyword?: string) => {
     Snackbar["loading"]({
       position: 'bottom',
       content: t('common.loading'),
@@ -158,16 +146,24 @@
     })
     const status = getStatusFromTab(activeTab.value)
     let response
+    const params: Record<string, any> = { column: 'createTime', order: 'desc' }
+    
+    // 添加搜索参数
+    if (searchKeyword) {
+      params.trackNo = '*' + searchKeyword + '*'
+      params.no = '*' + searchKeyword + '*'
+    }
+    
     if (status === PackageStatus.PENDING_INTERCEPT) {
-      response = await packageStore.fetchInterceptePackages(currentPage, pageSize.value, { status: '1', column: 'createTime', order: 'desc' })
+      response = await packageStore.fetchInterceptePackages(currentPage, pageSize.value, { ...params, status: '1' })
     } else if (status === PackageStatus.INTERCEPTED) {
-      response = await packageStore.fetchInterceptePackages(currentPage, pageSize.value, { status: '2', column: 'createTime', order: 'desc' })
+      response = await packageStore.fetchInterceptePackages(currentPage, pageSize.value, { ...params, status: '2' })
     } else if (status === PackageStatus.HOLD) {
-      response = await packageStore.fetchHoldPackages(currentPage, pageSize.value, { column: 'createTime', order: 'desc' })
+      response = await packageStore.fetchHoldPackages(currentPage, pageSize.value, params)
     } else if (status === PackageStatus.IN_STOCK) {
-      response = await packageStore.fetchInboundPackages(currentPage, pageSize.value, { status: '3', column: 'createTime', order: 'desc' })
+      response = await packageStore.fetchIntoPackages(currentPage, pageSize.value, { ...params})
     } else {
-      response = await packageStore.fetchInboundPackages(currentPage, pageSize.value, { status: '1', column: 'createTime', order: 'desc' })
+      response = await packageStore.fetchInboundPackages(currentPage, pageSize.value, { ...params, status: '1' })
     }
     response.records.forEach(pkg => {
       pkg.status = status as PackageStatus
@@ -204,7 +200,7 @@
     if (packageStore.loading || noMore.value) return
     currentPage.value++
     try {
-      await loadData(currentPage.value)
+      await loadData(currentPage.value, searchKeyword.value)
     } catch (error) {
       console.error('Failed to load more data:', error)
       currentPage.value--
@@ -240,7 +236,7 @@
       hasMore.value = true
       noMore.value = false
       try {
-        await loadData(currentPage.value)
+        await loadData(currentPage.value, searchKeyword.value)
       } catch (error) {
         console.error('Failed to search:', error)
       }
@@ -349,18 +345,6 @@
     margin-bottom: 16px;
   }
 
-  .page-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 30px;
-    text-align: center;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
   .search-filter-section {
     background: var(--surface-color);
     border-radius: 8px;
@@ -417,10 +401,42 @@
     font-weight: 600;
     color: var(--text-primary);
     padding: 12px 16px;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   :deep(.var-table td) {
     padding: 12px 16px;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 768px) {
+    :deep(.var-table th) {
+      font-size: 12px;
+      padding: 10px 8px;
+    }
+    
+    :deep(.var-table td) {
+      font-size: 12px;
+      padding: 10px 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    :deep(.var-table th) {
+      font-size: 11px;
+      padding: 8px 6px;
+    }
+    
+    :deep(.var-table td) {
+      font-size: 11px;
+      padding: 8px 6px;
+    }
   }
 
   :deep(.var-table tbody tr:hover) {

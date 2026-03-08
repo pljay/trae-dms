@@ -71,10 +71,15 @@ export const scanInPackage = async (trackNo: string, batchId?: string): Promise<
 export const scanOutPackage = async (
   trackNo: string,
   batchId: string
-): Promise<PaginationResponse<Package>> => {
-  return await apiClient.post(`/dms/outbound/scan`, {
-    trackNo,
-    batchId
+): Promise<Package> => {
+  // 使用表单方式提交参数
+  const formData = new FormData()
+  formData.append('no', trackNo)
+  formData.append('batchId', batchId)
+  return await apiClient.post(`/dms/outbound/scan`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 

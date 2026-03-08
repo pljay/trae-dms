@@ -41,6 +41,7 @@ export const mockOutboundBatches: OutboundBatch[] = Array.from({ length: 10 }, (
   expectedQuantity: faker.number.int({ min: 10, max: 100 }),
   outboundQuantity: faker.number.int({ min: 0, max: 100 }),
   quantity: faker.number.int({ min: 10, max: 100 }),
+  pieces: faker.number.int({ min: 10, max: 100 }),
   status: OutboundStatus.IN_PROGRESS,
   createTime: faker.date.past().toISOString(),
   updateTime: faker.date.recent().toISOString()

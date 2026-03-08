@@ -9,20 +9,21 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 class VoiceNotification {
   // 预翻译的常用消息缓存
   private preTranslatedMessages: Record<string, string> = {};
-  
+
   // TTS设置缓存
   private ttsSettings: {
     volume: number;
     pitch: number;
     rate: number;
+    voice: number;
   };
-  
+
   // 语音播放队列
   private speakQueue: Array<() => Promise<void>> = [];
-  
+
   // 标记是否正在播放语音
   private isSpeaking: boolean = false;
-  
+
   // 标记TTS引擎是否已初始化
   private isInitialized: boolean = false;
 
@@ -31,15 +32,16 @@ class VoiceNotification {
     this.ttsSettings = {
       volume: parseFloat(localStorage.getItem('ttsVolume') || '1.0'),
       pitch: parseFloat(localStorage.getItem('ttsPitch') || '1.0'),
-      rate: parseFloat(localStorage.getItem('ttsRate') || '2.0')
+      rate: parseFloat(localStorage.getItem('ttsRate') || '2.0'),
+      voice: parseInt(localStorage.getItem('ttsVoice') || '0')
     };
-    
+
     // 预翻译常用消息
     this.preTranslateMessages();
-    
+
     // 监听语言变化事件，更新预翻译消息
     this.watchLanguageChange();
-    
+
     // 预初始化TTS引擎
     this.preInitialize();
   }
@@ -52,18 +54,16 @@ class VoiceNotification {
     const commonKeys = [
       'common.success',
       'common.error',
-      'scanIn.scanSuccess',
-      'scanIn.scanFailed',
-      'scanIn.intercepted',
-      'scanOut.scanSuccess'
+      'scan.message.scanSuccess',
+      'scan.message.scanFailed'
     ];
-    
+
     // 预翻译并缓存这些消息
     commonKeys.forEach(key => {
       this.preTranslatedMessages[key] = i18n.global.t(key);
     });
   }
-  
+
   /**
    * 监听语言变化事件
    */
@@ -77,20 +77,28 @@ class VoiceNotification {
       }
     );
   }
-  
+
   /**
    * 预初始化TTS引擎
    */
   private async preInitialize(): Promise<void> {
     try {
       // 预初始化TTS引擎，减少首次调用延迟
-      await TextToSpeech.getSupportedLanguages();
+      const languages = await TextToSpeech.getSupportedLanguages();
+      console.log('Supported TTS languages:', languages);
+      const voices = await TextToSpeech.getSupportedVoices();
+      console.log('Supported TTS voices:', voices);
       this.isInitialized = true;
+      console.log('TTS engine initialized successfully');
     } catch (error) {
       console.error('Failed to pre-initialize TTS:', error);
+      if (error instanceof Error) {
+        console.error('TTS Error Message:', error.message);
+        console.error('TTS Error Stack:', error.stack);
+      }
     }
   }
-  
+
   /**
    * 更新TTS设置缓存
    */
@@ -98,7 +106,8 @@ class VoiceNotification {
     this.ttsSettings = {
       volume: parseFloat(localStorage.getItem('ttsVolume') || '1.0'),
       pitch: parseFloat(localStorage.getItem('ttsPitch') || '1.0'),
-      rate: parseFloat(localStorage.getItem('ttsRate') || '2.0')
+      rate: parseFloat(localStorage.getItem('ttsRate') || '2.0'),
+      voice: parseInt(localStorage.getItem('ttsVoice') || '0')
     };
   }
 
@@ -119,31 +128,58 @@ class VoiceNotification {
         } else {
           textToSpeak = message;
         }
-        
+
         // 更新TTS设置
         this.updateTtsSettings();
-        
+
         // 创建播放任务
         const speakTask = async () => {
           try {
+            console.log('Starting speak task with text:', textToSpeak);
+            console.log('TTS settings:', this.ttsSettings);
+
             // 确保TTS引擎已初始化
             if (!this.isInitialized) {
+              console.log('TTS engine not initialized, initializing...');
               await this.preInitialize();
             }
-            
+
+            // 检查设备是否支持TTS
+            const isSupported = await this.isSupported();
+            console.log('TTS supported:', isSupported);
+
+            if (!isSupported) {
+              console.error('TTS is not supported on this device');
+              return;
+            }
+
             // 使用Capacitor文本转语音插件播放语音
+            console.log('Calling TextToSpeech.speak with parameters:', {
+              text: textToSpeak,
+              rate: this.ttsSettings.rate,
+              pitch: this.ttsSettings.pitch,
+              volume: this.ttsSettings.volume,
+              voice: this.ttsSettings.voice,
+              lang: 'zh-CN'
+            });
+
             await TextToSpeech.speak({
               text: textToSpeak,
               rate: this.ttsSettings.rate,
               pitch: this.ttsSettings.pitch,
               volume: this.ttsSettings.volume,
+              voice: this.ttsSettings.voice,
               lang: 'zh-CN'
             });
+
+            console.log('TextToSpeech.speak completed successfully');
           } catch (error) {
             console.error('Failed to speak:', error);
             if (error instanceof Error) {
               console.error('TTS Error Message:', error.message);
               console.error('TTS Error Stack:', error.stack);
+            } else {
+              console.error('TTS Error Details:', error);
             }
           } finally {
             this.isSpeaking = false;
@@ -151,10 +187,10 @@ class VoiceNotification {
             resolve();
           }
         };
-        
+
         // 将任务添加到队列
         this.speakQueue.push(speakTask);
-        
+
         // 如果当前没有正在播放的语音，处理队列
         if (!this.isSpeaking) {
           this.processQueue();
@@ -165,7 +201,7 @@ class VoiceNotification {
       }
     });
   }
-  
+
   /**
    * 处理语音播放队列
    */
@@ -173,14 +209,14 @@ class VoiceNotification {
     if (this.isSpeaking || this.speakQueue.length === 0) {
       return;
     }
-    
+
     this.isSpeaking = true;
     const task = this.speakQueue.shift();
     if (task) {
       await task();
     }
   }
-  
+
   /**
    * 直接播放指定文本，无需国际化
    * @param text 要播放的文本内容
@@ -214,21 +250,21 @@ class VoiceNotification {
    * 播放扫描成功提示
    */
   public speakScanSuccess(): Promise<void> {
-    return this.speak('scanIn.scanSuccess');
+    return this.speak('scan.message.scanSuccess');
   }
 
   /**
    * 播放扫描失败提示
    */
   public speakScanFailed(): Promise<void> {
-    return this.speak('scanIn.scanFailed');
+    return this.speak('scan.message.scanFailed');
   }
 
   /**
    * 播放拦截提示
    */
   public speakIntercepted(): Promise<void> {
-    return this.speak('scanIn.intercepted');
+    return this.speak('scan.message.intercepted');
   }
 
   /**
@@ -238,10 +274,10 @@ class VoiceNotification {
     try {
       // 清空队列
       this.speakQueue = [];
-      
+
       // 停止当前播放
       await TextToSpeech.stop();
-      
+
       // 更新状态
       this.isSpeaking = false;
     } catch (error) {
@@ -261,7 +297,7 @@ class VoiceNotification {
       return false;
     }
   }
-  
+
   /**
    * 清除语音播放队列
    */

@@ -1,43 +1,42 @@
 <template>
-  <div class="view-content">
-    <div :style="{ height: calculateViewHeight() + 'px', overflowY: 'auto', border: '1px solid #eee', padding: '10px' }">
+    <div>
     <!-- 功能模块 -->
     <div class="function-modules">
       <var-row :gutter="[10, 10]">
         <!-- 扫描入库 -->
         <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-          <var-card shadow="hover" class="module-card" @click="navigateTo('/scan-in')">
+          <var-card shadow="hover" class="module-card" @click="navigateTo('/inbound-operate')">
             <div class="module-content">
               <div class="module-icon camera-icon">
                 <var-icon name="camera" :size="48" />
               </div>
-              <h3 class="module-title">{{ $t('home.modules.scanIn') }}</h3>
-              <p class="module-desc">{{ $t('home.modules.scanInDesc') }}</p>
+              <h3 class="module-title">{{ $t('homeView.modules.inboundOperate') }}</h3>
+              <p class="module-desc">{{ $t('homeView.modules.inboundOperateDesc') }}</p>
             </div>
           </var-card>
         </var-col>
 
         <!-- 包裹记录 -->
         <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-          <var-card shadow="hover" class="module-card" @click="navigateTo('/package-records')">
+          <var-card shadow="hover" class="module-card" @click="navigateTo('/package-list')">
             <div class="module-content">
               <div class="module-icon in-icon">
                 <var-icon name="format-list-checkbox" :size="48" />
               </div>
-              <h3 class="module-title">{{ $t('home.modules.inboundRecords') }}</h3>
-              <p class="module-desc">{{ $t('home.modules.inboundRecordsDesc') }}</p>
+              <h3 class="module-title">{{ $t('homeView.modules.packageList') }}</h3>
+              <p class="module-desc">{{ $t('homeView.modules.packageListDesc') }}</p>
             </div>
           </var-card>
         </var-col>
         <!-- 入库批次 -->
         <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-          <var-card shadow="hover" class="module-card" @click="navigateTo('/inbound-batches')">
+          <var-card shadow="hover" class="module-card" @click="navigateTo('/inbound-list')">
             <div class="module-content">
               <div class="module-icon batch-icon">
                 <var-icon name="format-list-checkbox" :size="48" />
               </div>
-              <h3 class="module-title">{{ $t('home.modules.inboundBatches') }}</h3>
-              <p class="module-desc">{{ $t('home.modules.inboundBatchesDesc') }}</p>
+              <h3 class="module-title">{{ $t('homeView.modules.inboundList') }}</h3>
+              <p class="module-desc">{{ $t('homeView.modules.inboundListDesc') }}</p>
             </div>
           </var-card>
         </var-col>
@@ -45,26 +44,26 @@
 
         <!-- 扫描出库 -->
         <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-          <var-card shadow="hover" class="module-card" @click="navigateTo('/scan-out')">
+          <var-card shadow="hover" class="module-card" @click="navigateTo('/outbound-operate-list')">
             <div class="module-content">
               <div class="module-icon upload-icon">
                 <var-icon name="upload-outline" :size="48" />
               </div>
-              <h3 class="module-title">{{ $t('home.modules.scanOut') }}</h3>
-              <p class="module-desc">{{ $t('home.modules.scanOutDesc') }}</p>
+              <h3 class="module-title">{{ $t('homeView.modules.outboundOperate') }}</h3>
+              <p class="module-desc">{{ $t('homeView.modules.outboundOperateDesc') }}</p>
             </div>
           </var-card>
         </var-col>
 
         <!-- 出库记录 -->
         <var-col :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-          <var-card shadow="hover" class="module-card" @click="navigateTo('/outbound-records')">
+          <var-card shadow="hover" class="module-card" @click="navigateTo('/outbound-list')">
             <div class="module-content">
               <div class="module-icon list-icon">
                 <var-icon name="format-list-checkbox" :size="48" />
               </div>
-              <h3 class="module-title">{{ $t('home.modules.outboundRecords') }}</h3>
-              <p class="module-desc">{{ $t('home.modules.outboundRecordsDesc') }}</p>
+              <h3 class="module-title">{{ $t('homeView.modules.outboundList') }}</h3>
+              <p class="module-desc">{{ $t('homeView.modules.outboundListDesc') }}</p>
             </div>
           </var-card>
         </var-col>
@@ -75,16 +74,16 @@
     <!-- 数据统计 -->
     <div class="stats-section">
       <var-card shadow="hover">
-        <h2 class="stats-title">{{ $t('home.stats.title') }}</h2>
+        <h2 class="stats-title">{{ $t('homeView.stats.title') }}</h2>
         <var-row :gutter="[12, 12]">
           <var-col :xs="24" :sm="24" :md="6" :lg="6" :xl="6">
             <div class="stat-card stat-total">
               <div class="stat-header">
                 <var-icon name="package-variant-closed" :size="28" />
-                <span class="stat-label">总包裹数</span>
+                <span class="stat-label">{{ $t('homeView.stats.inbound') }}</span>
               </div>
               <div class="stat-body">
-                <div class="stat-number">{{ totalPackages }}</div>
+                <div class="stat-number">{{ inboundPackages }}</div>
               </div>
             </div>
           </var-col>
@@ -92,49 +91,48 @@
             <div class="stat-card stat-instock">
               <div class="stat-header">
                 <var-icon name="check-circle" :size="28" />
-                <span class="stat-label">已入库</span>
+                <span class="stat-label">{{ $t('homeView.stats.inStock') }}</span>
               </div>
               <div class="stat-body">
                 <div class="stat-number">{{ inStockPackages }}</div>
               </div>
-              <div class="stat-footer">
+              <!-- <div class="stat-footer">
                 <var-chip type="success" size="small">{{ getInStockPercentage.toFixed(1) }}%</var-chip>
-              </div>
+              </div> -->
             </div>
           </var-col>
           <var-col :xs="24" :sm="24" :md="6" :lg="6" :xl="6">
             <div class="stat-card stat-intercepted">
               <div class="stat-header">
                 <var-icon name="alert-circle" :size="28" />
-                <span class="stat-label">已拦截</span>
+                <span class="stat-label">{{ $t('homeView.stats.pendingIntercept') }}</span>
               </div>
               <div class="stat-body">
-                <div class="stat-number">{{ interceptedPackages }}</div>
+                <div class="stat-number">{{ pendingInterceptedPackages }}</div>
               </div>
-              <div class="stat-footer">
-                <var-chip type="danger" size="small">{{ getInterceptedPercentage.toFixed(1) }}%</var-chip>
-              </div>
+              <!-- <div class="stat-footer">
+                <var-chip type="danger" size="small">{{ getPendingInterceptPackages.toFixed(1) }}%</var-chip>
+              </div> -->
             </div>
           </var-col>
           <var-col :xs="24" :sm="24" :md="6" :lg="6" :xl="6">
             <div class="stat-card stat-pending">
               <div class="stat-header">
                 <var-icon name="clock-outline" :size="28" />
-                <span class="stat-label">待处理</span>
+                <span class="stat-label">{{ $t('homeView.stats.holding') }}</span>
               </div>
               <div class="stat-body">
-                <div class="stat-number">{{ pendingPackages }}</div>
+                <div class="stat-number">{{ holdingPackages }}</div>
               </div>
-              <div class="stat-footer">
-                <var-chip type="warning" size="small">{{ getPendingPercentage.toFixed(1) }}%</var-chip>
-              </div>
+              <!-- <div class="stat-footer">
+                <var-chip type="warning" size="small">{{ getHoldingPercentage.toFixed(1) }}%</var-chip>
+              </div> -->
             </div>
           </var-col>
         </var-row>
       </var-card>
     </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -142,37 +140,22 @@
   import { useRouter } from 'vue-router';
   import { usePackageStore } from '@/stores/package';
   import { useTitleStore } from '@/stores/title';
-  import { calculateViewHeight } from '@/utils/calculateHeight'
 
   const router = useRouter();
   const packageStore = usePackageStore();
   const titleStore = useTitleStore();
   
-  titleStore.setTitle('home.title');
+  titleStore.setTitle('homeView.title');
 
   const navigateTo = (path: string) => {
     router.push(path);
   };
 
-  const totalPackages = computed(() => packageStore.totalProcessedCount);
+  const inboundPackages = computed(() => packageStore.inboundCount);
   const inStockPackages = computed(() => packageStore.inStockCount);
-  const interceptedPackages = computed(() => packageStore.interceptedCount);
-  const pendingPackages = computed(() => packageStore.pendingCount);
+  const pendingInterceptedPackages = computed(() => packageStore.pendingInterceptedCount);
+  const holdingPackages = computed(() => packageStore.holdingCount);
 
-  const getInStockPercentage = computed(() => {
-    if (totalPackages.value === 0) return 0;
-    return (inStockPackages.value / totalPackages.value) * 100;
-  });
-
-  const getInterceptedPercentage = computed(() => {
-    if (totalPackages.value === 0) return 0;
-    return (interceptedPackages.value / totalPackages.value) * 100;
-  });
-
-  const getPendingPercentage = computed(() => {
-    if (totalPackages.value === 0) return 0;
-    return (pendingPackages.value / totalPackages.value) * 100;
-  });
 
   onMounted(() => {
     packageStore.loadPackageStats();
@@ -180,16 +163,6 @@
 </script>
 
 <style scoped lang="css">
-  .page-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 30px;
-    text-align: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
 
   .function-modules {
     margin-bottom: 40px;

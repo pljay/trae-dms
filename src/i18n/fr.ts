@@ -1,159 +1,5 @@
 export default {
-  // 登录页面
-  login: {
-    title: 'DMS',
-    subtitle: 'Bienvenue dans le système de gestion de l\'entrepôt',
-    username: 'Nom d\'utilisateur',
-    password: 'Mot de passe',
-    remember: 'Se souvenir du compte',
-    submit: 'Se connecter',
-    required: 'Veuillez entrer {field}',
-    loginSuccess: 'Connexion réussie',
-    loginFailed: 'Échec de la connexion, veuillez vérifier votre nom d\'utilisateur et votre mot de passe'
-  },
-
-  // 主页
-  home: {
-    title: 'DMS',
-    modules: {
-      scanIn: 'Scan entrant',
-      scanInDesc: 'Scanner le numéro de suivi du colis pour effectuer une opération entrante',
-      packageRecords: 'Enregistrements de colis',
-      packageRecordsDesc: 'Voir les informations détaillées de tous les colis',
-      scanOut: 'Scan sortant',
-      scanOutDesc: 'Scanner le numéro de suivi du colis pour effectuer une opération sortante',
-      outboundRecords: 'Enregistrements sortants',
-      outboundRecordsDesc: 'Gérer tous les lots sortants',
-      inboundRecords: 'Enregistrements entrants',
-      inboundRecordsDesc: 'Voir tous les enregistrements entrants',
-      inboundBatches: 'Lots entrants',
-      inboundBatchesDesc: 'Gérer tous les lots entrants'
-    },
-    stats: {
-      title: 'Statistiques de données',
-      totalPackages: 'Total des colis',
-      inStock: 'En stock',
-      pending: 'En attente',
-      totalBatches: 'Total des lots'
-    }
-  },
-
-  // 扫描入库
-  scanIn: {
-    title: 'Scan entrant',
-    scanBarcode: 'Scanner le code-barres',
-    manualInput: 'Saisie manuelle',
-    pleaseInputBarcode: 'Veuillez saisir le code-barres',
-    cameraScan: 'Scan caméra',
-    scanSuccess: 'Scan réussi',
-    scanFailed: 'Échec du scan',
-    intercepted: 'Intercepté',
-    interceptMessage: 'Raison d\'interception',
-    trackNo: 'Numéro de suivi',
-    channel: 'Canal',
-    country: 'Pays',
-    confirm: 'Confirmer',
-    cancel: 'Annuler',
-    cameraInitFailed: 'Échec de l\'initialisation de la caméra',
-    cameraInUse: 'Caméra en cours d\'utilisation',
-    cameraStarted: 'Caméra démarrée',
-    cameraPermissionDenied: 'Permission de caméra refusée',
-    cameraNotFound: 'Caméra introuvable',
-    cameraNotSupported: 'Caméra non prise en charge',
-    notInBatch: 'Ce numéro de suivi n\'est pas dans le lot entrant, stockage interdit',
-    notForecast: 'Colis non prévu, intercepté directement',
-    alreadyInStock: 'Déjà en stock, stockage en double',
-    pendingIntercept: 'Intercepté',
-    alreadyIntercepted: 'Déjà intercepté, intercepté en double',
-    invalidParams: 'Paramètres invalides',
-    invalidStatus: 'Statut {status}, impossible à stocker à nouveau'
-  },
-
-  // 包裹记录
-  packageRecords: {
-    title: 'Enregistrements de colis',
-    filter: {
-      all: 'Tous',
-      inStock: 'En stock',
-      pending: 'En attente',
-      pendingIntercept: 'Interception en attente',
-      intercepted: 'Intercepté',
-      outOfStock: 'Hors stock',
-      hold: 'En attente de traitement'
-    },
-    table: {
-      trackNo: 'Numéro de suivi',
-      weight: 'Poids(kg)',
-      dimensions: 'Dimensions(cm)',
-      status: 'Statut',
-      channel: 'Canal',
-      country: 'Pays',
-      createdAt: 'Date de création',
-      updatedAt: 'Date de mise à jour'
-    }
-  },
-
-  // 扫描出库
-  scanOut: {
-    title: 'Scan sortant',
-    batchExists: 'Lot sortant déjà existant',
-    batchCreated: 'Lot créé avec succès',
-    createFailed: 'Échec de la création du lot',
-    selectChannelPrompt: 'Veuillez sélectionner un canal',
-    step1: {
-      title: 'Étape 1: Entrez le numéro de lot sortant',
-      serialNumber: 'Numéro de série sortant',
-      createNew: 'Créer un nouveau lot',
-      useExisting: 'Utiliser un lot existant'
-    },
-    step2: {
-      title: 'Étape 2: Sélectionnez le canal d\'expédition',
-      channel: 'Canal',
-      selectChannel: 'Veuillez sélectionner un canal d\'expédition'
-    },
-    step3: {
-      title: 'Étape 3: Scan sortant',
-      scan: 'Scanner le colis',
-      scannedCount: 'Scannés: {count}',
-      totalCount: 'Total: {total}',
-      complete: 'Terminer la sortie',
-      noScanned: 'Aucun colis n\'a été scanné'
-    },
-    scanSuccess: 'Scan réussi',
-    batchAutoLoaded: 'Informations sur le lot chargées automatiquement',
-    batchNotFound: 'Lot non trouvé'
-  },
-
-  // 出库记录
-  outboundRecords: {
-    title: 'Enregistrements sortants',
-    addBatch: 'Ajouter un lot sortant',
-    filter: {
-      all: 'Tous',
-      inProgress: 'En cours',
-      completed: 'Terminé'
-    },
-    table: {
-      serialNumber: 'Numéro de série sortant',
-      channel: 'Canal',
-      expectedQuantity: 'Quantité attendue',
-      actualQuantity: 'Quantité réelle',
-      quantity: 'Quantité',
-      status: 'Statut',
-      createdAt: 'Date de création',
-      updatedAt: 'Date de mise à jour',
-      action: 'Action'
-    },
-    actions: {
-      continue: 'Continuer la sortie',
-      completed: 'Terminé',
-      scanOut: 'Sortie',
-      ship: 'Expédier'
-    },
-    shipSuccess: 'Expédition réussie'
-  },
-
-  // 通用
+  // Configuration commune
   common: {
     logout: 'Déconnexion',
     loading: 'Chargement...',
@@ -165,23 +11,189 @@ export default {
     next: 'Suivant',
     noMoreData: 'Plus de données',
     noData: 'Aucune donnée',
-    search: 'Rechercher',
-    searchPlaceholder: 'Veuillez entrer le numéro de suivi, le canal ou le pays pour rechercher',
+    search: {
+      title: 'Recherche',
+      placeholder: 'Veuillez entrer un mot-clé de recherche',
+      error: 'Recherche échouée, veuillez réessayer',
+      success: 'Recherche réussie',
+      noResults: 'Aucun résultat correspondant trouvé'
+    },
+    placeholder: {
+      trackNo: 'Veuillez entrer le numéro de suivi',
+      batchNo: 'Veuillez entrer le numéro de lot',
+    },
     welcome: 'Bienvenue',
     chinese: 'Chinois',
     english: 'Anglais',
     french: 'Français',
     german: 'Allemand',
-    lightTheme: 'Mode clair',
-    darkTheme: 'Mode sombre',
+    lightTheme: 'Thème clair',
+    darkTheme: 'Thème sombre',
     userProfile: 'Profil utilisateur',
     settings: 'Paramètres',
     help: 'Aide'
   },
-
-  // 入库批次
-  inboundRecords: {
-    title: 'Enregistrements entrants',
+  
+  // Configuration des statuts
+  status: {
+    // Statut du colis
+    package: {
+      inStock: 'En stock',
+      pending: 'En attente',
+      pendingIntercept: 'Bloqué en attente',
+      intercepted: 'Bloqué',
+      outOfStock: 'Pas de stock',
+      unknown: 'Inconnu'
+    },
+    // Statut du lot d'entrée
+    inboundBatch: {
+      pending: 'En attente d\'entrée',
+      inProgress: 'Entrée en cours',
+      completed: 'Entrée terminée',
+      outboundInProgress: 'Sortie en cours',
+      outboundCompleted: 'Sortie terminée',
+      unknown: 'Inconnu'
+    },
+    // Statut du lot de sortie
+    outboundBatch: {
+      inProgress: 'Sortie en cours',
+      completed: 'Sortie terminée'
+    }
+  },
+  
+  // Configuration des erreurs API
+  api: {
+    error: {
+      badRequest: 'Mauvaise requête',
+      unauthorized: 'Non autorisé',
+      forbidden: 'Interdit',
+      notFound: 'Non trouvé',
+      serverError: 'Erreur serveur',
+      networkError: 'Erreur réseau',
+      requestError: 'Erreur de requête',
+      unknownError: 'Erreur inconnue'
+    }
+  },
+  
+  // Configuration du scan
+  scan: {
+    title: 'Scanner',
+    barcode: 'Numéro de suivi',
+    pointCamera: 'Placez le code QR/barre dans le cadre pour scanner automatiquement',
+    help: 'Prend en charge les codes QR et les codes à barres',
+    lightOn: 'Allumer la lampe',
+    lightOff: 'Éteindre la lampe',
+    album: 'Sélectionner depuis l\'album',
+    manualInput: 'Saisie manuelle',
+    enterCode: 'Veuillez entrer le code',
+    scanSuccess: 'Scan réussi',
+    scanFailed: 'Échec du scan',
+    camera: 'Scanner le numéro de suivi',
+    errorReason: 'Raison de l\'échec du scan',
+    unknownError: 'Erreur inconnue',
+    cameraPermissionDenied: 'Permission de caméra refusée',
+    flashlightError: 'Échec de l\'opération de lampe',
+    albumNotSupported: 'Scan d\'album non pris en charge',
+    scanTimeout: 'Délai de scan dépassé, veuillez réessayer',
+    cameraStarted: 'Caméra démarrée',
+    cameraNotSupported: 'Le navigateur ne prend pas en charge la caméra',
+    cameraNotFound: 'Aucune caméra trouvée',
+    cameraInUse: 'Caméra en cours d\'utilisation',
+    message: {
+      scanFailed: 'Erreur',
+      scanSuccess: 'Success',
+      notForecast: 'Erreur',
+      duplicateInbound: 'Déjà entrée',
+      intercept: 'Colis bloqué',
+      duplicateIntercepted: 'Déjà Bloqué',
+      duplicateOutbound: 'Déjà sorti',
+      notInbound: 'Pas de stock',
+      channelErrorOutbound: 'Destination erreur',
+      notInBatch: 'Colis non dans le lot actuel',
+      invalidParams: 'Paramètres invalides',
+      invalidStatus: 'Statut invalide'
+    }
+  },
+  
+  // Configuration des paramètres vocaux
+  voiceSetting: {
+    title: 'Paramètres vocaux',
+    volume: 'Volume',
+    pitch: 'Hauteur',
+    rate: 'Vitesse',
+    voice: 'Voix',
+    defaultVoice: 'Voix par défaut',
+    test: 'Test vocal',
+    testText: 'Ceci est un message de test vocal',
+    testFailed: 'Échec du test vocal'
+  },
+  
+  // Configuration des fichiers de vue
+  
+  // LoginView.vue
+  loginView: {
+    title: 'Entrepôt',
+    subtitle: 'Bienvenue dans le système de gestion d\'entrepôt',
+    username: 'Nom d\'utilisateur',
+    password: 'Mot de passe',
+    remember: 'Se souvenir de moi',
+    submit: 'Connexion',
+    required: 'Veuillez entrer {field}',
+    loginSuccess: 'Connexion réussie',
+    loginFailed: 'Échec de la connexion, veuillez vérifier le nom d\'utilisateur et le mot de passe'
+  },
+  
+  // HomeView.vue
+  homeView: {
+    title: 'Entrepôt',
+    modules: {
+      inboundOperate: 'Scanner l\'entrée',
+      inboundOperateDesc: 'Scannez le numéro de suivi pour entrée',
+      packageList: 'Liste des colis',
+      packageListDesc: 'Consultez tous les détails des colis',
+      outboundOperate: 'Scanner la sortie',
+      outboundOperateDesc: 'Scannez le numéro de suivi pour sortie',
+      outboundList: 'Enregistrements de sortie',
+      outboundListDesc: 'Gérez tous les lots de sortie',
+      inboundList: 'Lots d\'entrée',
+      inboundListDesc: 'Gérez tous les lots d\'entrée'
+    },
+   stats: {
+      title: 'Statistiques',
+      inbound: 'En attente d\'entrée',
+      inStock: 'En stock',
+      pendingIntercept: 'Bloqué en attente',
+      holding: 'En attente'
+    }
+  },
+  
+  // PackageListView.vue
+  packageListView: {
+    title: 'Liste des colis',
+    filter: {
+      all: 'Tous',
+      inStock: 'En stock',
+      pending: 'En attente',
+      pendingIntercept: 'Bloqué en attente',
+      intercepted: 'Déjà Bloqué',
+      outOfStock: 'Pas de stock',
+      hold: 'En attente'
+    },
+    table: {
+      trackNo: 'Numéro de suivi',
+      weight: 'Poids(kg)',
+      dimensions: 'Dimensions(cm)',
+      status: 'Statut',
+      channel: 'Destination ',
+      country: 'Pays',
+      createdAt: 'Créé le',
+      updatedAt: 'Mis à jour le'
+    }
+  },
+  
+  // InboundBatchListView.vue
+  inboundBatchListView: {
+    title: 'Liste des lots d\'entrée',
     filter: {
       all: 'Tous',
       inProgress: 'En cours',
@@ -192,110 +204,221 @@ export default {
       weight: 'Poids(kg)',
       dimensions: 'Dimensions(cm)',
       status: 'Statut',
-      channel: 'Canal',
+      channel: 'Destination',
       country: 'Pays',
-      createdAt: 'Date de création',
-      updatedAt: 'Date de mise à jour'
-    }
-  },
-
-  inboundBatches: {
-    title: 'Lots de réception',
-    batchDetail: 'Détails du lot de réception',
+      createdAt: 'Créé le',
+      updatedAt: 'Mis à jour le'
+    },
+    batchDetail: 'Détail du lot d\'entrée',
     batchNo: 'Numéro de lot',
     status: 'Statut',
     createdAt: 'Créé le',
-    inboundProgress: 'Progression de réception',
-    outboundProgress: 'Progression de sortie',
-    channelProgress: 'Progression par canal',
+    inboundProgress: 'Statut d’entrée',
+    outboundProgress: 'Statut de sortie',
+    channelProgress: 'Statut du Destination ',
     packageRecords: 'Enregistrements de colis',
-    noChannelInfo: 'Aucune information sur le canal',
+    noChannelInfo: 'Aucune information sur le destination',
     noPackageRecords: 'Aucun enregistrement de colis',
-    inboundProgressText: 'Progression de réception: {current}/{total}',
-    pendingBatches: 'En attente',
-    inProgressBatches: 'En cours',
-    completedBatches: 'Terminé',
-    outboundInProgressBatches: 'Sortie en cours',
-    outboundCompletedBatches: 'Sortie terminée',
+    inboundProgressText: 'Statut d’entrée: {current}/{total}',
+    pendingBatches: 'Lots en attente',
+    inProgressBatches: 'Lots en cours',
+    completedBatches: 'Lots terminés',
+    outboundInProgressBatches: 'Lots de sortie en cours',
+    outboundCompletedBatches: 'Lots de sortie terminés',
     noPendingBatches: 'Aucun lot en attente',
     noInProgressBatches: 'Aucun lot en cours',
     noCompletedBatches: 'Aucun lot terminé',
-    noOutboundInProgressBatches: 'Aucun lot en cours de sortie',
-    noOutboundCompletedBatches: 'Aucun lot avec sortie terminée',
+    noOutboundInProgressBatches: 'Aucun lot de sortie en cours',
+    noOutboundCompletedBatches: 'Aucun lot de sortie terminé',
     labels: {
       batchNo: 'Numéro de lot:',
       status: 'Statut:',
       createdAt: 'Créé le:',
-      inboundProgress: 'Progression de réception:'
+      inboundProgress: 'Statut d’entrée:'
     }
   },
-
-  // API 错误
-  api: {
-    error: {
-      badRequest: 'Mauvaise requête',
-      unauthorized: 'Accès non autorisé',
-      forbidden: 'Accès interdit',
-      notFound: 'Ressource non trouvée',
-      serverError: 'Erreur interne du serveur',
-      networkError: 'Erreur de connexion réseau',
-      requestError: 'Erreur de configuration de la requête',
-      unknownError: 'Erreur inconnue'
-    }
-  },
-
-  // 状态
-  status: {
-    // 包裹状态
-    package: {
-      inStock: 'En stock',
-      pending: 'En attente',
-      pendingIntercept: 'Interception en attente',
-      intercepted: 'Intercepté',
-      outOfStock: 'Hors stock',
-      unknown: 'Inconnu'
+  
+  // InboundBatchDetailView.vue
+  inboundBatchDetailView: {
+    title: 'Détail du lot d\'entrée',
+    batchInfo: 'Informations sur le lot',
+    packageRecords: 'Enregistrements de colis',
+    batchNo: 'Numéro de lot',
+    status: 'Statut',
+    createdAt: 'Créé le',
+    inboundProgress: 'Statut d’entrée',
+    channelProgress: 'Statut du Destination',
+    noPackageRecords: 'Aucun enregistrement de colis',
+    noChannelInfo: 'Aucune information sur le destination ',
+    trackNo: 'Numéro de suivi',
+    scanSuccess: 'Scan réussi',
+    scanFailed: 'Échec du scan',
+    labels: {
+      batchNo: 'Numéro de lot:',
+      status: 'Statut:',
+      createdAt: 'Créé le:',
+      inboundProgress: 'Statut d’entrée:'
     },
-    // 入仓批次状态
-    inboundBatch: {
-      pending: 'En attente',
+  },
+  
+  // InboundOperateView.vue
+  inboundOperateView: {
+    title: 'Opération d\'entrée',
+    batchInfo: 'Informations sur le lot',
+    scan: 'Scanner l\'entrée',
+    batchNo: 'Numéro de lot',
+    trackNo: 'Numéro de suivi',
+    status: 'Statut',
+    channel: 'Destination ',
+    quantity: 'Quantité',
+    weight: 'Poids(kg)',
+    dimensions: 'Dimensions(cm)',
+    manualInput: 'Saisie manuelle du numéro de suivi',
+    scannedCount: 'Scanné: {count}',
+    scanSuccess: 'Scan réussi',
+    scanFailed: 'Échec du scan',
+    notInBatch: 'Numéro de suivi non dans le lot',
+    notForecast: 'Colis non prévu',
+    alreadyInStock: 'Déjà en stock',
+    pendingIntercept: 'Bloqué ',
+    alreadyIntercepted: 'Déjà Bloqué ',
+    invalidParams: 'Paramètres invalides',
+    invalidStatus: 'Statut {status}, entrée interdite'
+  },
+  
+  // OutboundBatchListView.vue
+  outboundBatchListView: {
+    title: 'Liste des lots de sortie',
+    addBatch: 'Ajouter un lot de sortie',
+    filter: {
+      all: 'Tous',
       inProgress: 'En cours',
-      completed: 'Terminé',
-      outboundInProgress: 'Sortie en cours',
-      outboundCompleted: 'Sortie terminée',
-      unknown: 'Inconnu'
+      completed: 'Terminé'
     },
-    // 出库批次状态
-    outboundBatch: {
+    table: {
+      serialNumber: 'Numéro de série',
+      channel: 'Destination ',
+      expectedQuantity: 'Quantité prévue',
+      actualQuantity: 'Quantité réelle',
+      quantity: 'Quantité',
+      status: 'Statut',
+      createdAt: 'Créé le',
+      updatedAt: 'Mis à jour le',
+      action: 'Action'
+    },
+    actions: {
+      continue: 'Continuer ',
+      completed: 'Terminé',
+      scanOut: 'Sortie',
+      ship: 'Expédier'
+    },
+    shipSuccess: 'Expédition réussie'
+  },
+  
+  // OutboundOperateView.vue
+  outboundOperateView: {
+    title: 'Opération de sortie',
+    batchInfo: 'Informations sur le lot',
+    scan: 'Scanner la sortie',
+    serialNumber: 'Numéro de série',
+    channel: 'Destination ',
+    quantity: 'Quantité',
+    scannedCount: 'Scanné: {count}',
+    scanSuccess: 'Scan réussi',
+    scanFailed: 'Échec du scan',
+    alreadyOutStock: 'Déjà sortie',
+    notInOutStock: 'Pas de stock, sortie interdite',
+    channelErrorOutStock: 'Erreur de Destination, sortie interdite',
+    invalidParams: 'Paramètres invalides',
+    invalidStatus: 'Statut {status}, sortie interdite'
+  },
+
+  // OutboundOperateDetailView.vue
+  outboundOperateDetailView: {
+    title: 'Opération de sortie',
+    batchInfo: 'Informations sur le lot',
+    serialNumber: 'Numéro de série de sortie',
+    channel: 'Destination',
+    quantity: 'Quantité',
+    scannedCount: 'Scanné',
+    complete: 'Expédier',
+    confirmComplate: 'Êtes-vous sûr de vouloir expédier ?',
+    batchNotFound: 'Lot non trouvé',
+    confirmManualInput: 'Êtes-vous sûr de vouloir saisir manuellement la sortie ?',
+    sacn: {
+      scanSuccess: 'Scan réussi',
+      scanFailed: 'Échec du scan',
+      alreadyOutStock: 'Déjà  sortie ',
+      notInOutStock: 'Pas de stock, sortie interdite',
+      channelErrorOutStock: 'Erreur de Destination, sortie interdite',
+      invalidParams: 'Paramètres invalides',
+      invalidStatus: 'Statut {status}, sortie interdite'
+    }
+
+  },
+
+  // OutboundOperateListView.vue
+  outboundOperateListView: {
+    title: 'Liste des opérations de sortie',
+    list: {
+      serialNumber: 'Numéro de série de sortie',
+      channel: 'Canal',
+      actualQuantity: 'Quantité réelle',
+      status: 'Statut',
+      createdAt: 'Créé le',
+      updatedAt: 'Mis à jour le',
+      action: 'Action'
+    },
+    action: {
+      add: 'Ajouter un lot de sortie',
+      continue: 'Continuer la sortie',
+      completed: 'Terminé',
+      scanOut: 'Sortie',
+      complate: 'Expédier'
+    },
+    confirmComplate: 'Êtes-vous sûr de vouloir expédier ?',
+    form: {
+      title: 'Ajouter un lot de sortie',
+      step1: {
+        title: 'Étape 1 : Entrez le numéro de lot de sortie',
+        serialNumber: 'Veuillez entrer le numéro de lot de sortie'
+      },
+      step2: {
+        title: 'Étape 2 : Sélectionnez le Destination',
+        selectChannel: 'Veuillez sélectionner le Destination'
+      }
+    },
+    filter: {
+      all: 'Tous',
       inProgress: 'En cours',
       completed: 'Terminé'
     }
   },
   
-  // 扫码页面
-  scan: {
-    title: 'Scan',
-    pointCamera: 'Placez le code QR/barcode dans le cadre pour scanner automatiquement',
-    help: 'Prend en charge les codes QR et les barcodes',
-    lightOn: 'Allumer la lampe torche',
-    lightOff: 'Éteindre la lampe torche',
-    album: 'Sélectionner depuis l\'album',
+  // ScanView.vue
+  scanView: {
+    title: 'Scanner',
+    scanBarcode: 'Scanner le code barre',
     manualInput: 'Saisie manuelle',
-    enterCode: 'Veuillez entrer le code',
-    scanSuccess: 'Scan réussi',
-    scanFailed: 'Échec du scan',
+    pleaseInputBarcode: 'Veuillez entrer le code barre',
+    cameraScan: 'Scan caméra',
+    confirm: 'Confirmer',
+    cancel: 'Annuler',
+    cameraInitFailed: 'Échec de l\'initialisation de la caméra',
+    cameraInUse: 'Caméra en cours d\'utilisation',
+    cameraStarted: 'Caméra démarrée',
     cameraPermissionDenied: 'Permission de caméra refusée',
-    flashlightError: 'Échec de l\'opération de lampe torche',
-    albumNotSupported: 'La numérisation depuis l\'album n\'est pas prise en charge pour le moment',
-    scanTimeout: 'Délai de scan dépassé, veuillez réessayer'
+    cameraNotFound: 'Aucune caméra trouvée',
+    cameraNotSupported: 'Le navigateur ne prend pas en charge la caméra'
   },
-
-  // 语音设置
-  voiceSetting: {
+  
+  // VoiceSettingView.vue
+  voiceSettingView: {
     title: 'Paramètres vocaux',
     volume: 'Volume',
     pitch: 'Hauteur',
     rate: 'Vitesse',
-    test: 'Tester la voix',
+    test: 'Test vocal',
     testText: 'Ceci est un message de test vocal',
     testFailed: 'Échec du test vocal'
   }

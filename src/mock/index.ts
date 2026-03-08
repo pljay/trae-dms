@@ -7,7 +7,7 @@
 
 export function setupProdMockServer() {
   // 只在开发环境初始化mock服务器
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCK === 'true') {
     try {
       // 动态导入，避免生产环境加载错误 只有开发环境才加载mock服务
       import('vite-plugin-mock/client').then(({ createProdMockServer }) => {

@@ -1,5 +1,5 @@
 <template>
-  <div class="view-content">
+  <div>
     <!-- 扫描按钮 -->
     <div class="scan-section">
       <var-card shadow="hover" class="scan-card">
@@ -10,14 +10,14 @@
             :icon="'camera'"
             @click="goToScanHandler"
           >
-            {{ $t('scanIn.cameraScan') }}
+            {{ $t('scan.camera') }}
           </var-button>
           
           <!-- 手动输入区域 -->
           <div class="manual-input-section">
             <var-input
               v-model="manualInput"
-              :placeholder="$t('scanIn.manualInput')"
+              :placeholder="$t('scan.manualInput')"
               @keyup.enter="handleManualInput"
               size="normal"
               clearable
@@ -43,56 +43,51 @@
         <template #title>
           <div class="card-header">
             <var-icon name="checkmark-circle" class="status-icon success-icon" />
-            <span>{{ $t('scanIn.scanSuccess') }}</span>
+            <span>{{ $t('inboundOperateView.scanSuccess') }}</span>
           </div>
         </template>
         <div class="result-info">
           <div class="result-item">
-            <label>{{ $t('scanIn.trackNo') }}:</label>
+            <label>{{ $t('inboundOperateView.trackNo') }}:</label>
             <span>{{ scanResult.trackNo || scanResult.no }}</span>
           </div>
           <div class="result-item">
-            <label>{{ $t('scanIn.channel') }}:</label>
+            <label>{{ $t('inboundOperateView.channel') }}:</label>
             <span>{{ scanResult.channelCode }}</span>
           </div>
           <div class="result-item">
-            <label>{{ $t('scanIn.country') }}:</label>
+            <label>{{ $t('inboundOperateView.quantity') }}:</label>
             <span>{{ scanResult.country }}</span>
           </div>
           <div class="result-item">
-            <label>{{ $t('packageRecords.table.weight') }}:</label>
+            <label>{{ $t('inboundOperateView.weight') }}:</label>
             <span>{{ scanResult.weight }} kg</span>
           </div>
           <div class="result-item">
-            <label>{{ $t('packageRecords.table.dimensions') }}:</label>
+            <label>{{ $t('inboundOperateView.dimensions') }}:</label>
             <span>{{ scanResult.length }}x{{ scanResult.width }}x{{ scanResult.height }} cm</span>
           </div>
         </div>
       </var-card>
 
-      <!-- 拦截状态-->
-      <var-card shadow="hover" class="result-card intercept" v-else-if="scanStatus === 'warning' && scanResult">
+      <!-- 警告状态-->
+      <var-card shadow="hover" class="result-card warning" v-else-if="scanStatus === 'warning' && scanResult">
         <template #title>
           <div class="card-header">
-            <var-icon name="warning" class="status-icon intercept-icon" />
+            <var-icon name="warning" class="status-icon warn-icon" />
             <span>{{errorMessage }}</span>
           </div>
         </template>
         <div class="result-info">
           <div class="result-item">
-            <label>{{ $t('scanIn.trackNo') }}:</label>
+            <label>{{ $t('inboundOperateView.trackNo') }}:</label>
             <span>{{ scanResult.trackNo || scanResult.no }}</span>
           </div>
           <div class="result-item">
-            <label>{{ $t('scanIn.channel') }}:</label>
+            <label>{{ $t('inboundOperateView.status') }}:</label>
             <span>{{ scanResult.channelCode }}</span>
           </div>
-          <div class="result-item">
-            <label>{{ $t('scanIn.country') }}:</label>
-            <span>{{ scanResult.country }}</span>
-          </div>
-          <div class="result-item intercept-message">
-            <label>{{ $t('scanIn.interceptMessage') }}:</label>
+          <div class="result-item warn-message">
             <span>{{ errorMessage }}</span>
           </div>
         </div>
@@ -103,12 +98,12 @@
         <template #title>
           <div class="card-header">
             <var-icon name="close-circle" class="status-icon error-icon" />
-            <span>{{ $t('scanIn.scanFailed') }}</span>
+            <span>{{ $t('inboundOperateView.scanFailed') }}</span>
           </div>
         </template>
         <div class="result-info">
           <div class="result-item">
-            <label>{{ $t('scanIn.trackNo') }}:</label>
+            <label>{{ $t('inboundOperateView.trackNo') }}:</label>
             <span>{{ scanResult?.no }}</span>
           </div>
           <div class="result-item error-message">
@@ -117,7 +112,6 @@
         </div>
       </var-card>
     </div>
-
   </div>
 </template>
 
@@ -132,8 +126,8 @@
   const errorMessage = ref<string>('')
   const manualInput = ref<string>('')
   const titleStore = useTitleStore()
-  titleStore.setTitle('scanIn.title')
-  const barcode = ref<string>('')
+  titleStore.setTitle('inboundOperateView.title')
+
 
   // 使用扫描组合式函数
   const {
@@ -143,7 +137,7 @@
 
   // 跳转到独立扫描页面的处理函数
   const goToScanHandler = () => {
-    goToScan('scan-in', 'handleScan')
+    goToScan('inbound-operate', 'handleScan')
   }
 
   // 处理扫描结果
@@ -195,7 +189,7 @@
 <style scoped lang="css">
 
   .scan-section {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
   }
 
   .scan-card {
@@ -250,7 +244,7 @@
     border-top: 4px solid var(--success-color);
   }
 
-  .result-card.intercept {
+  .result-card.warning {
     border-top: 4px solid var(--warning-color);
   }
 
@@ -276,7 +270,7 @@
     color: var(--success-color);
   }
 
-  .intercept-icon {
+  .warn-icon {
     color: var(--warning-color);
   }
 
@@ -310,7 +304,7 @@
     word-break: break-word;
   }
 
-  .intercept-message span {
+  .warn-message span {
     color: var(--warning-color);
     font-weight: 500;
   }

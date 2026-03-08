@@ -108,6 +108,7 @@ export default [
         serialNumber: body.serialNumber || generateBatchSerialNumber(),
         channelId: body.channel,
         quantity: 0,
+        pieces: 0,
         status: OutboundStatus.IN_PROGRESS,
         packages: [],
         createdAt: new Date().toISOString(),

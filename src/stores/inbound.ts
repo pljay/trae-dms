@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { InboundBatch, InboundBatchChannel, InboundStatus } from '../types'
+import { InboundBatch, BatchChannel, InboundStatus } from '../types'
 import {
   getAllInboundBatches,
   getInboundBatchById,
@@ -13,7 +13,7 @@ const channelStore = useChannelStore()
 export const useInboundBatchStore = defineStore('inboundBatch', {
   state: () => ({
     currentBatch: null as InboundBatch | null,
-    batchChannels: [] as InboundBatchChannel[],
+    batchChannels: [] as BatchChannel[],
     loading: false
   }),
 
@@ -45,10 +45,10 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
 
   actions: {
     // 获取所有入库批次
-    async fetchBatches(page: number, pageSize: number, status?: InboundStatus) {
+    async fetchBatches(page: number, pageSize: number,  params?: Record<string, any>) {
       this.loading = true
       try {
-        const response = await getAllInboundBatches(page, pageSize, status)
+        const response = await getAllInboundBatches(page, pageSize,  params)
         response.records.forEach(batch => {
            switch (batch.status) {
              case '1':
@@ -107,9 +107,9 @@ export const useInboundBatchStore = defineStore('inboundBatch', {
     },
 
     // 获取渠道入库进度百分比
-    getChannelProgress(channel: InboundBatchChannel): number {
+    getChannelProgress(channel: BatchChannel): number {
       if (channel.expectQuantity === 0) return 0
-      return Math.min(100, Math.round((channel.inboundQuantity / channel.expectQuantity) * 100))
+      return Math.min(100, Math.round((channel.actualQuantity / channel.expectQuantity) * 100))
     }
   }
 })

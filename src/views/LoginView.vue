@@ -2,20 +2,20 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <h2>{{ $t('login.title') }}</h2>
-        <p class="login-subtitle">{{ $t('login.subtitle') }}</p>
+        <h2>{{ $t('loginView.title') }}</h2>
+        <p class="login-subtitle">{{ $t('loginView.subtitle') }}</p>
       </div>
       <var-form ref="loginFormRef" label-position="top">
-        <var-input v-model="loginForm.username" :placeholder="$t('login.required', { field: $t('login.username') })"
-          :rules="[{ required: true, message: () => t('login.required', { field: $t('login.username') }) }]"
+        <var-input v-model="loginForm.username" :placeholder="$t('loginView.required', { field: $t('loginView.username') })"
+          :rules="[{ required: true, message: () => t('loginView.required', { field: $t('loginView.username') }) }]"
           icon="account" />
         <var-input v-model="loginForm.password" type="password"
-          :placeholder="$t('login.required', { field: $t('login.password') })"
-          :rules="[{ required: true, message: () => t('login.required', { field: $t('login.password') }) }]"
+          :placeholder="$t('loginView.required', { field: $t('loginView.password') })"
+          :rules="[{ required: true, message: () => t('loginView.required', { field: $t('loginView.password') }) }]"
           icon="lock" />
-        <var-checkbox v-model="loginForm.remember">{{ $t('login.remember') }}</var-checkbox>
+        <var-checkbox v-model="loginForm.remember">{{ $t('loginView.remember') }}</var-checkbox>
         <var-button type="primary" @click="handleLogin" :loading="loading" block size="large">
-          {{ $t('login.submit') }}
+          {{ $t('loginView.submit') }}
         </var-button>
 
       </var-form>
@@ -32,6 +32,7 @@
   import { initializeAppData } from '@/utils/init'
   import { authApi } from '@/api'
 
+
   const router = useRouter()
   const authStore = useAuthStore()
   const { t } = useI18n()
@@ -44,8 +45,21 @@
     remember: false
   })
 
-  // 组件挂载时加载保存的账号密码
+  // 组件挂载时加载保存的账号密码并检查登录状态
   onMounted(() => {
+    // 检查用户是否已登录
+    if (authStore.isAuthenticated) {
+       // 已登录，跳转到首页
+      router.push('/home')
+      Snackbar({
+        type: 'success',
+        content: t('loginView.alreadyLoggedIn'),
+        duration: 2000
+      })
+      return
+    }
+    
+    // 未登录，加载保存的账号密码
     const savedCredentials = authStore.getSavedCredentials()
     if (savedCredentials.username) {
       loginForm.username = savedCredentials.username
@@ -77,18 +91,18 @@
       }, loginResponse.token)
       
       // 登录成功后初始化应用数据
-      await initializeAppData()
+      await initializeAppData(router)
       
       Snackbar({
         type: 'success',
-        content: t('login.loginSuccess'),
+        content: t('loginView.loginSuccess'),
         duration: 2000
       })
       router.push('/home')
     } catch (error: any) {
       Snackbar({
         type: 'error',
-        content: error.message || t('login.loginFailed'),
+        content: error.message || t('loginView.loginFailed'),
         duration: 2000
       })
     } finally {

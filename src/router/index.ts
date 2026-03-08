@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
 import i18n from '@/i18n'
-const { t } = i18n.global
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -13,7 +12,9 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/LoginView.vue'),
     meta: { 
        requiresAuth: false,
-       title: t('login.title')
+       titleKey: 'loginView.title',
+       showTopBar: true,
+       showBottomBar: false
     }
   },
   {
@@ -22,71 +23,90 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/HomeView.vue'),
     meta: { 
       requiresAuth: true,
-      title: t('home.title')
+      titleKey: 'homeView.title',
+      showTopBar: true,
+      showBottomBar: false
     }
   },
   {
-    path: '/scan-in',
-    name: 'scan-in',
-    component: () => import('../views/ScanInView.vue'),
+    path: '/inbound-operate',
+    name: 'inbound-operate',
+    component: () => import('../views/InboundOperateView.vue'),
     meta: { 
       requiresAuth: true,
-      title: t('scanIn.title')
+      titleKey: 'inboundOperateView.title',
+      showTopBar: true,
+      showBottomBar: true
     }
   },
   {
-    path: '/package-records',
-    name: 'package-records',
-    component: () => import('../views/PackageRecordsView.vue'),
+    path: '/package-list',
+    name: 'package-list',
+    component: () => import('../views/PackageListView.vue'),
     meta: { 
       requiresAuth: true,
-      title: t('packageRecords.title')
+      titleKey: 'packageListView.title',
+      showTopBar: true,
+      showBottomBar: true
     }
   },
   {
-    path: '/scan-out',
-    name: 'scan-out',
-    component: () => import('../views/ScanOutView.vue'),
+    path: '/inbound-list',
+    name: 'inbound-list',
+    component: () => import('../views/InboundBatchListView.vue'),
     meta: { 
       requiresAuth: true,
-      title: t('scanOut.title')
+      titleKey: 'inboundBatchListView.title',
+      showTopBar: true,
+      showBottomBar: true
     } 
   },
   {
-    path: '/scan-operation',
-    name: 'scan-operation',
-    component: () => import('../views/ScanOperationView.vue'),
-    meta: { 
-      requiresAuth: true,
-      title: t('scanOperation.title')
-    }
-  },
-  {
-    path: '/outbound-records',
-    name: 'outbound-records',
-    component: () => import('../views/OutboundRecordsView.vue'),
-    meta: { 
-      requiresAuth: true,
-      title: t('outboundRecords.title')
-    } 
-  },
-  {
-    path: '/inbound-batches',
-    name: 'inbound-batches',
-    component: () => import('../views/InboundBatchesView.vue'),
-    meta: { 
-      requiresAuth: true,
-      title: t('inboundBatches.title')
-    } 
-  },
-  {
-    path: '/inbound-batches/:id',
-    name: 'inbound-batch-detail',
+    path: '/inbound-list/:id',
+    name: 'inbound-list-detail',
     component: () => import('../views/InboundBatchDetailView.vue'),
     meta: { 
       requiresAuth: true,
-      title: t('inboundBatchDetail.title')
+      titleKey: 'inboundBatchDetailView.title',
+      showTopBar: true,
+      showBottomBar: false
     }   
+  },
+  // 出库批次列表
+  {
+    path: '/outbound-list',
+    name: 'outbound-list',
+    component: () => import('../views/OutboundBatchListView.vue'),
+    meta: { 
+      requiresAuth: true,
+      titleKey: 'outboundBatchListView.title',
+      showTopBar: true,
+      showBottomBar: true
+    } 
+  },
+  // 出库操作列表
+  {
+    path: '/outbound-operate-list',
+    name: 'outbound-operate-list',
+    component: () => import('../views/OutboundOperateListView.vue'),
+    meta: { 
+      requiresAuth: true,
+      titleKey: 'outboundOperateListView.title',
+      showTopBar: true,
+      showBottomBar: true
+    } 
+  },
+  // 出库操作详情
+  {
+    path: '/outbound-operate-list/:id',
+    name: 'outbound-operate-detail',
+    component: () => import('../views/OutboundOperateDetailView.vue'),
+    meta: { 
+      requiresAuth: true,
+      titleKey: 'outboundOperateDetailView.title',
+      showTopBar: true,
+      showBottomBar: false
+    }
   },
   //语音设置
   {
@@ -95,7 +115,9 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/VoiceSettingView.vue'),
     meta: { 
       requiresAuth: true,
-      title: t('voiceSetting.title')
+      titleKey: 'voiceSettingView.title',
+      showTopBar: true,
+      showBottomBar: true
     }   
   },
   {
@@ -104,7 +126,9 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/ScanView.vue'),
     meta: { 
       requiresAuth: true,
-      title: t('scan.title')
+      titleKey: 'scanView.title',
+      showTopBar: true,
+      showBottomBar: false
     }   
   }
 ]
@@ -115,16 +139,27 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
-  console.log('to', to)
-  console.log('from', from)
-  const authStore = useAuthStore()
-  const isAuthenticated = authStore.isAuthenticated
-  const requiresAuth = to.meta.requiresAuth as boolean
-  document.title = to.meta.title as string
-  if (requiresAuth && !isAuthenticated) {
-    next('/login')
-  } else {
+router.beforeEach(async (to, _from, next) => {
+  try {
+    // 延迟导入useAuthStore，避免在初始化时访问localStorage
+    const { useAuthStore } = await import('../stores/auth')
+    const authStore = useAuthStore()
+    const isAuthenticated = authStore.isAuthenticated
+    const requiresAuth = to.meta.requiresAuth as boolean
+    
+    // 使用titleKey动态获取标题
+    if (to.meta.titleKey) {
+      document.title = i18n.global.t(to.meta.titleKey as string)
+    }
+    
+    if (requiresAuth && !isAuthenticated) {
+      next('/login')
+    } else {
+      next()
+    }
+  } catch (error) {
+    console.error('Router guard error:', error)
+    // 出错时默认允许访问，避免应用崩溃
     next()
   }
 })

@@ -1,12 +1,17 @@
 <template>
-  <var-app-bar  fixed :show-text="true" :safe-area-top="true">
-    {{$t(titleStore.getTitle())}}
-    <!-- 左侧：主页按钮 -->
+  <var-app-bar fixed :show-text="true" :safe-area-top="true">
+    <!-- 左侧：返回按钮和主页按钮 -->
     <template #left v-if="!isLoginPage">
+      <!-- 返回按钮 -->
+      <var-button v-if="!isHomePage" type="primary" @click="goBack" round>
+        <var-icon name="chevron-left" ></var-icon>
+      </var-button>
+      <!-- 主页按钮 -->
       <var-button type="primary" @click="navigateToHome" round>
         <var-icon name="home" ></var-icon>
       </var-button>
     </template>
+    <div class="app-bar-title">{{$t(titleStore.getTitle())}}</div>
   
     <!-- 右侧：功能按钮 -->
     <template #right>
@@ -48,22 +53,10 @@
           <var-icon name="chevron-down" />
         </var-button>
         <template #options>
-          <!-- <var-menu-option @click="handleProfile">
-            <var-icon name="account-circle" />
-            {{ $t('common.userProfile') }}
-          </var-menu-option> -->
           <var-menu-option @click="handleVoiceSetting">
             <var-icon name="volume-high" />
             {{ $t('voiceSetting.title') }}
           </var-menu-option>
-          <!-- <var-menu-option @click="handleSettings">
-            <var-icon name="settings" />
-            {{ $t('common.settings') }}
-          </var-menu-option> -->
-          <!-- <var-menu-option @click="handleHelp">
-            <var-icon name="help-circle" />
-            {{ $t('common.help') }}
-          </var-menu-option> -->
           <var-divider />
           <var-menu-option @click="handleLogout">
             {{ $t('common.logout') }}
@@ -95,6 +88,7 @@
   const showLangPopup = ref(false);
   const showUserPopup = ref(false);
   const isLoginPage = ref(false);
+  const isHomePage = ref(false);
   // 标题响应式变量，初始值使用翻译后的文本
   const title = ref(t(titleStore.getTitle()) || '');
 
@@ -107,6 +101,11 @@
   // 导航到主页
   const navigateToHome = () => {
     router.push('/home');
+  };
+
+  // 返回上一页
+  const goBack = () => {
+    router.back();
   };
 
   // 获取当前语言文本
@@ -184,6 +183,7 @@
     // 监听路由变化，更新isLoginPage
     console.log("router.currentRoute.value.path", router.currentRoute.value.path)
     isLoginPage.value = router.currentRoute.value.path === '/login' || router.currentRoute.value.path === '/';
+    isHomePage.value = router.currentRoute.value.path === '/home';
 
     // 检查本地存储中的主题和语言设置
     const savedTheme = localStorage.getItem('theme');
@@ -201,18 +201,19 @@
     // 检查是否为移动设备
     checkIsMobile();
 
+
     // 添加窗口大小变化监听
     window.addEventListener('resize', checkIsMobile);
   });
 
   watch(() => router.currentRoute.value.path, (newPath) => {
     isLoginPage.value = newPath === '/login' || newPath === '/';
+    isHomePage.value = newPath === '/home';
   })
   
   // 监听标题变化
   watch(() => titleStore.getTitle(), () => {
     title.value = t(titleStore.getTitle()) || ''
-    console.log("title.value", title.value)
   })
   
   // 监听语言变化，当语言切换时更新标题翻译
@@ -226,3 +227,42 @@
   });
 
 </script>
+
+<style scoped lang="css">
+.app-bar-title {
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  max-width: 100%;
+  transition: font-size 0.2s ease;
+  /* 初始字体大小，会被JavaScript动态覆盖 */
+  font-size: 16px;
+}
+
+/* 左侧按钮容器 */
+:deep(.var-app-bar__left) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 右侧按钮容器 */
+:deep(.var-app-bar__right) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 确保按钮大小一致 */
+:deep(.var-button) {
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

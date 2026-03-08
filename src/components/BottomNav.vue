@@ -1,35 +1,35 @@
 <template>
   <var-bottom-navigation v-model:active="active" :fixed="true" :safe-area="true" :border="true" >
     <var-bottom-navigation-item
-      name="scan-in"
-      :label="$t('scanIn.title')"
+      name="inbound-operate"
+      :label="$t('inboundOperateView.title')"
       icon="barcode-scan"
-      @click="navigate('/scan-in')"
+      @click="navigate('/inbound-operate')"
     />
 
     <var-bottom-navigation-item
-      name="package-records"
-      :label="$t('packageRecords.title')"
+      name="package-list"
+      :label="$t('packageListView.title')"
       icon="format-list-checkbox"
-      @click="navigate('/package-records')"
+      @click="navigate('/package-list')"
     />
     <var-bottom-navigation-item
-      name="inbound-batches"
-      :label="$t('inboundBatches.title')"
+      name="inbound-list"
+      :label="$t('inboundBatchListView.title')"
       icon="format-list-checkbox"
-      @click="navigate('/inbound-batches')"
+      @click="navigate('/inbound-list')"
     />
     <var-bottom-navigation-item
-      name="scan-out"
-      :label="$t('scanOut.title')"
+      name="outbound-operate-list"
+      :label="$t('outboundOperateListView.title')"
       icon="upload-outline"
-      @click="navigate('/scan-out')"
+      @click="navigate('/outbound-operate-list')"
     />
     <var-bottom-navigation-item
-      name="outbound-records"
-      :label="$t('outboundRecords.title')"
+      name="outbound-list"
+      :label="$t('outboundBatchListView.title')"
       icon="format-list-checkbox"
-      @click="navigate('/outbound-records')"
+      @click="navigate('/outbound-list')"
     />
   </var-bottom-navigation>
 </template>
@@ -56,26 +56,35 @@ onMounted(() => {
 </script>
 
 <style scoped lang="css">
-:deep(.var-bottom-navigation-item__label) {
-  font-size: 12px; /* 减小字体大小 */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 80px; /* 限制最大宽度 */
-}
-
 :deep(.var-bottom-navigation) {
   height: auto;
   min-height: 56px;
+  display: flex;
+  justify-content: space-around;
 }
 
 :deep(.var-bottom-navigation-item) {
-  padding: 8px 4px; /* 调整内边距 */
+  padding: 8px 2px; /* 进一步减少内边距 */
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 :deep(.var-bottom-navigation-item__icon) {
-  font-size: 20px; /* 调整图标大小 */
+  font-size: 18px; /* 进一步减小图标大小 */
+  margin-bottom: 4px;
+}
+
+:deep(.var-bottom-navigation-item__label) {
+  font-size: 10px; /* 进一步减小字体大小 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60px; /* 进一步限制最大宽度 */
+  text-align: center;
+  line-height: 1.2;
 }
 </style>

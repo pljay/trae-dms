@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { Package, PackageStatus, ErrorCode, PackageStatsCount } from '../types'
-import { getIntoPackages, getInboundPackages, getInterceptePackages, getHoldPackages, scanInPackage, scanOutPackage, getPackageCount} from '../api/package'
+import { getIntoPackages, getInboundPackages, getInterceptePackages, getHoldPackages, scanInPackage, scanOutPackage, getPackageCount } from '../api/package'
 import { useChannelStore } from '../stores/channel'
 import { Snackbar } from '@varlet/ui'
 import i18n from '@/i18n'
@@ -16,9 +16,9 @@ export const usePackageStore = defineStore('package', {
 
   getters: {
     inStockCount: (state) => state.packageStats?.intoCount || 0,
-    interceptedCount: (state) => state.packageStats?.interceptedCount || 0,
-    pendingCount: (state) => state.packageStats?.holdCount || 0,
-    totalProcessedCount: (state) => state.packageStats?.totalCount || 0
+    pendingInterceptedCount: (state) => state.packageStats?.pendingInterceptedCount || 0,
+    holdingCount: (state) => state.packageStats?.holdingCount || 0,
+    inboundCount: (state) => state.packageStats?.inboundCount || 0
   },
 
   actions: {
@@ -33,7 +33,7 @@ export const usePackageStore = defineStore('package', {
     },
 
     //获取预报包裹列表
-    
+
     // 获取已预报包裹列表
     async fetchInboundPackages(page: number = 1, pageSize: number = 20, params?: Record<string, any>) {
       this.loading = true
@@ -41,8 +41,8 @@ export const usePackageStore = defineStore('package', {
         const response = await getInboundPackages(page, pageSize, params)
         const channelStore = useChannelStore()
         response.records.forEach(pkg => {
-          const channelInfo = channelStore.getChannelById(pkg?.channelId||"")
-          pkg.channelCode = channelInfo?.code || channelInfo?.name||""
+          const channelInfo = channelStore.getChannelById(pkg?.channelId || "")
+          pkg.channelCode = channelInfo?.code || channelInfo?.name || ""
         })
         return response
       } catch (error) {
@@ -101,7 +101,7 @@ export const usePackageStore = defineStore('package', {
 
     // 显示扫描成功通知
     showScanSuccessNotification(): void {
-      Snackbar({ type: 'success', content: i18n.global.t('scanIn.scanSuccess') })
+      Snackbar({ type: 'success', content: i18n.global.t('scan.message.scanSuccess') })
       voiceNotification.speakScanSuccess()
       // 添加成功震动反馈
       vibrationNotification.vibrateSuccess()
@@ -112,36 +112,36 @@ export const usePackageStore = defineStore('package', {
       const errorCode = error?.data?.code || error?.code
       const pkg = (error?.data || error || {}) as Package
       switch (errorCode) {
-        case ErrorCode.NOT_FORECAST_PACKAGE:
-          this.scanError = { pkg: pkg, message: i18n.global.t('scanIn.notForecast') || '非预报包裹，直接拦截', type: 'error' }
+        case ErrorCode.NOT_FORECAST:
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.notForecast') || '非预报包裹，直接拦截', type: 'error' }
           break
-        case ErrorCode.DUPLICATE_IN_STOCK:
-          this.scanError = { pkg: pkg, message: i18n.global.t('scanIn.alreadyInStock') || '已入库状态，重复入库', type: 'warning' }
+        case ErrorCode.DUPLICATE_INBOUND:
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.duplicateInbound') || '已入库状态，重复入库', type: 'warning' }
           break
         case ErrorCode.PENDING_INTERCEPT:
-          this.scanError = { pkg: pkg, message: i18n.global.t('scanIn.pendingIntercept') || '拦截', type: 'warning' }
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.intercept') || '拦截', type: 'warning' }
           break
         case ErrorCode.DUPLICATE_INTERCEPTED:
-          this.scanError = { pkg: pkg, message: i18n.global.t('scanIn.alreadyIntercepted') || '重复拦截', type: 'warning' }
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.duplicateIntercepted') || '重复拦截', type: 'warning' }
           break
         case ErrorCode.NOT_IN_BATCH:
-          this.scanError = { pkg: pkg, message: i18n.global.t('scanIn.notInBatch') || '不在批次内', type: 'warning' }
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.notInBatch') || '不在批次内', type: 'warning' }
           break
         case ErrorCode.INVALID_PARAMS:
-          this.scanError = { pkg: pkg, message: i18n.global.t('scanIn.invalidParams') || '参数无效', type: 'warning' }
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.invalidParams') || '参数无效', type: 'warning' }
           break
         case ErrorCode.INVALID_STATUS:
-          this.scanError = { pkg: pkg, message: i18n.global.t(this.getStatusText(pkg.status)) + i18n.global.t('scanIn.invalidStatus') || '包裹不存在', type: 'warning' }
+          this.scanError = { pkg: pkg, message: i18n.global.t(this.getStatusText(pkg.status)) + i18n.global.t('scan.message.invalidStatus') || '包裹不存在', type: 'warning' }
           break
         default:
-          this.scanError = { pkg: pkg as Package, message: i18n.global.t('scanIn.scanFailed') || '扫描失败', type: 'error' }
+          this.scanError = { pkg: pkg as Package, message: i18n.global.t('scan.message.scanFailed') || '扫描失败', type: 'error' }
           break
       }
       Snackbar({ type: this.scanError.type, content: this.scanError.message, duration: 2000 })
       voiceNotification.speakText(this.scanError.message)
       // 添加震动反馈，错误状态比成功更强更长
       if (this.scanError.type === 'error') {
-        vibrationNotification.vibrateHeavy()
+        vibrationNotification.vibrateError()
       } else {
         vibrationNotification.vibrateWarning()
       }
@@ -149,7 +149,7 @@ export const usePackageStore = defineStore('package', {
 
     // 处理被拦截的包裹
     handleInterceptedPackage(): void {
-      Snackbar({ type: 'warning', content: i18n.global.t('scanIn.intercepted') })
+      Snackbar({ type: 'warning', content: i18n.global.t('scan.message.intercept') || '拦截' })
       voiceNotification.speakIntercepted()
       // 添加警告震动反馈
       vibrationNotification.vibrateWarning()
@@ -164,17 +164,16 @@ export const usePackageStore = defineStore('package', {
         const channelStore = useChannelStore()
 
         const response = await scanInPackage(trackNo, batchId)
-        const channelInfo = channelStore.getChannelById(response?.channelId||"")
-        response.channelCode = channelInfo?.code || channelInfo?.name||""
+        const channelInfo = channelStore.getChannelById(response?.channelId || "")
+        response.channelCode = channelInfo?.code || channelInfo?.name || ""
         console.log('Scanned package:', response)
         this.showScanSuccessNotification()
         return response
       } catch (error: any) {
         console.error('Failed to scan in package:', error)
-
         if (error?.data?.code || error?.code) {
           this.handleScanInError(error)
-        } 
+        }
         return null
       } finally {
         this.loading = false
@@ -183,7 +182,7 @@ export const usePackageStore = defineStore('package', {
 
     // 显示出库成功通知
     showScanOutSuccessNotification(): void {
-      Snackbar({ type: 'success', content: i18n.global.t('scanOut.scanSuccess') })
+      Snackbar({ type: 'success', content: i18n.global.t('scan.message.scanSuccess') || '扫描成功' })
       voiceNotification.speakScanSuccess()
       // 添加成功震动反馈
       vibrationNotification.vibrateSuccess()
@@ -191,23 +190,50 @@ export const usePackageStore = defineStore('package', {
 
     // 处理出库错误
     handleScanOutError(error: any): void {
-      console.error('Failed to scan out package:', error)
-      Snackbar({ type: 'error', content: i18n.global.t('common.error') })
-      voiceNotification.speakError()
-      // 添加错误震动反馈，比成功更强更长
-      vibrationNotification.vibrateHeavy()
+      const errorCode = error?.data?.code || error?.code
+      const pkg = (error?.data || error || {}) as Package
+      switch (errorCode) {
+        case ErrorCode.DUPLICATE_OUTBOUND:
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.duplicateOutbound') || '已出库状态，重复出库', type: 'warning' }
+          break
+        case ErrorCode.NOT_INBOUND:
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.notInbound') || '未入库禁止出库', type: 'warning' }
+          break
+        case ErrorCode.CHANNEL_ERROR_OUTBOUND:
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.channelErrorOutbound') || '渠道错误，禁止出库', type: 'warning' }
+          break
+        case ErrorCode.INVALID_PARAMS:
+          this.scanError = { pkg: pkg, message: i18n.global.t('scan.message.invalidParams') || '参数无效', type: 'warning' }
+          break
+        case ErrorCode.INVALID_STATUS:
+          this.scanError = { pkg: pkg, message: i18n.global.t(this.getStatusText(pkg.status)) + i18n.global.t('scan.message.invalidStatus') || '包裹不存在', type: 'warning' }
+          break
+        default:
+          this.scanError = { pkg: pkg as Package, message: i18n.global.t('scan.message.scanFailed') || '扫描失败', type: 'error' }
+          break
+      }
+
+      Snackbar({ type: this.scanError.type, content: this.scanError.message, duration: 2000 })
+      voiceNotification.speakText(this.scanError.message)
+      // 添加震动反馈，错误状态比成功更强更长
+      if (this.scanError.type === 'error') {
+        vibrationNotification.vibrateError()
+      } else {
+        vibrationNotification.vibrateWarning()
+      }
     },
 
     // 出库 - 调用API
-    async scanOut(trackNo: string, batchId: string): Promise<boolean> {
+    async scanOut(trackNo: string, batchId: string): Promise<Package | null> {
       this.loading = true
       try {
-        await scanOutPackage(trackNo, batchId)
+        const response = await scanOutPackage(trackNo, batchId)
+        console.log('Scanned package:', response)
         this.showScanOutSuccessNotification()
-        return true
+        return response
       } catch (error) {
         this.handleScanOutError(error)
-        return false
+        return null
       } finally {
         this.loading = false
       }

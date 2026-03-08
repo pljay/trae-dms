@@ -6,16 +6,16 @@
       <var-card class="batch-info-card">
         <div class="batch-info">
           <div class="info-row">
-            <span class="label">{{ $t('inboundBatches.labels.batchNo') }}</span>
+            <span class="label">{{ $t('inboundBatchDetailView.labels.batchNo') }}</span>
             <span class="value">{{ currentBatch?.batchNumber || currentBatch?.no }}|{{ currentBatch?.serialNumber
             }}</span>
           </div>
           <div class="info-row">
-            <span class="label">{{ $t('inboundBatches.labels.createdAt') }}</span>
+            <span class="label">{{ $t('inboundBatchDetailView.labels.createdAt') }}</span>
             <span class="value">{{ formatDate(currentBatch?.createdAt) }}</span>
           </div>
           <div class="info-row">
-            <span class="label">{{ $t('inboundBatches.labels.inboundProgress') }}</span>
+            <span class="label">{{ $t('inboundBatchDetailView.labels.inboundProgress') }}</span>
             <div class="progress-section">
               <div class="progress-text">
                 <span>{{ currentBatch?.inboundQuantity }}/{{ currentBatch?.expectedQuantity }}</span>
@@ -25,21 +25,6 @@
                 :height="8" class="progress-bar" />
             </div>
           </div>
-          <!-- <div class="info-row">
-            <span class="label">{{ $t('inboundBatches.outboundProgress') }}</span>
-            <div class="progress-section">
-              <div class="progress-text">
-                <span>{{ getOutboundQuantity(currentBatch) }}/{{ currentBatch?.expectedQuantity }}</span>
-                <span class="progress-percentage">({{ getOutboundProgress(currentBatch) }}%)</span>
-              </div>
-              <var-progress
-                :value="getOutboundProgress(currentBatch)"
-                :color="getOutboundProgressColor(currentBatch)"
-                :height="8"
-                class="progress-bar"
-              />
-            </div>
-          </div> -->
         </div>
       </var-card>
       <!-- 扫描入库 -->
@@ -48,12 +33,12 @@
         <var-card shadow="hover" class="scan-card">
           <div class="scan-button-container">
             <var-button type="primary" size="large" :icon="'camera'" @click="goToScanHandler">
-              {{ $t('scanOut.step3.scan') }}
+              {{ $t('scan.camera') }}
             </var-button>
 
             <!-- 手动输入区域 -->
             <div class="manual-input-section">
-              <var-input v-model="manualInput" :placeholder="$t('scanIn.manualInput')" @keyup.enter="handleManualInput"
+              <var-input v-model="manualInput" :placeholder="$t('scan.manualInput')" @keyup.enter="handleManualInput"
                 size="normal" clearable>
               </var-input>
               <var-button type="success" size="large" @click="handleManualInput" :disabled="!manualInput.trim()">
@@ -68,7 +53,7 @@
         <div class="card-header">
           <div class="card-title">
             <var-icon name="format-list-bulleted" />
-            <span>{{ $t('inboundBatches.channelProgress') }}</span>
+            <span>{{ $t('inboundBatchDetailView.channelProgress') }}</span>
           </div>
         </div>
         <div v-if="batchChannels.length > 0" class="channels-list">
@@ -82,33 +67,19 @@
                 <!-- 入仓进度 -->
                 <div class="channel-progress-item">
                   <div class="channel-progress-text">
-                    <span class="progress-label">{{ $t('inboundBatches.inboundProgress') }}:</span>
-                    <span>{{ channel.inboundQuantity }}/{{ channel.expectQuantity }}</span>
+                    <span class="progress-label">{{ $t('inboundBatchDetailView.inboundProgress') }}:</span>
+                    <span>{{ channel.actualQuantity }}/{{ channel.expectQuantity }}</span>
                     <span class="progress-percentage">({{ getChannelProgress(channel) }}%)</span>
                   </div>
                   <var-progress :value="getChannelProgress(channel)" :color="getChannelInboundProgressColor(channel)"
                     :height="6" class="channel-progress-bar" />
                 </div>
-                <!-- 出仓进度 -->
-                <!-- <div class="channel-progress-item">
-                  <div class="channel-progress-text">
-                    <span class="progress-label">{{ $t('inboundBatches.outboundProgress') }}:</span>
-                    <span>{{ getChannelOutboundQuantity(channel) }}/{{ channel.expectedQuantity }}</span>
-                    <span class="progress-percentage">({{ getChannelOutboundProgress(channel) }}%)</span>
-                  </div>
-                  <var-progress
-                    :value="getChannelOutboundProgress(channel)"
-                    :color="getChannelOutboundProgressColor(channel)"
-                    :height="6"
-                    class="channel-progress-bar"
-                  />
-                </div> -->
               </div>
             </var-card>
           </div>
         </div>
         <div v-else class="empty-state">
-          <var-empty :description="$t('inboundBatches.noChannelInfo')" />
+          <var-empty :description="$t('inboundBatchDetailView.noChannelInfo')" />
         </div>
       </var-card>
 
@@ -117,7 +88,7 @@
         <div class="card-header">
           <div class="card-title">
             <var-icon name="package-variant" />
-            <span>{{ $t('inboundBatches.packageRecords') }}</span>
+            <span>{{ $t('inboundBatchDetailView.packageRecords') }}</span>
           </div>
           <!-- 取消筛选按钮 -->
           <var-button v-if="selectedChannel" text outline type="warning" size="small" @click="cancelChannelFilter">
@@ -150,7 +121,7 @@
                     </span>
                   </div>
                   <div class="package-date">
-                    {{ formatDate(pkg.createdAt) }}
+                    {{ formatDate(pkg.createTime) }}
                   </div>
                 </div>
               </div>
@@ -159,7 +130,7 @@
         </div>
       </var-card>
     </div>
-  </div>>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -183,7 +154,7 @@
   const channelStore = useChannelStore()
   const route = useRoute()
   const titleStore = useTitleStore()
-  titleStore.setTitle('inboundBatches.batchDetail')
+  titleStore.setTitle('inboundBatchDetailView.title')
   const loading = ref(false)
   const finished = ref(false)
   const manualInput = ref<string>('')
@@ -365,13 +336,22 @@
   // 处理手动输入
   const handleManualInput = async () => {
     if (manualInput.value.trim()) {
-      await handleScanIn(manualInput.value.trim(), batchId.value)
+      const result = await handleScanIn(manualInput.value.trim(), batchId.value)
       manualInput.value = ''
+      
+      // 如果扫描成功，重新加载批次数据和包裹数据
+      if (result.success) {
+        // 先加载批次数据和渠道进度
+        await inboundBatchStore.fetchBatchById(batchId.value)
+        await inboundBatchStore.fetchBatchChannels(batchId.value)
+        // 再加载包裹数据
+        await loadInitialData()
+      }
     }
   }
 
   // 处理扫描结果（从扫描页面返回时调用）
-  const handleScanResult = (result: boolean, message: string) => {
+  const handleScanResult = async (result: boolean, message: string) => {
     scanSuccess.value = result
     scanResult.value = message
 
@@ -382,9 +362,11 @@
 
     // 如果扫描成功，重新加载批次数据和包裹数据
     if (result) {
-      inboundBatchStore.fetchBatchById(batchId.value)
-      inboundBatchStore.fetchBatchChannels(batchId.value)
-      loadInitialData()
+      // 先加载批次数据和渠道进度
+      await inboundBatchStore.fetchBatchById(batchId.value)
+      await inboundBatchStore.fetchBatchChannels(batchId.value)
+      // 再加载包裹数据
+      await loadInitialData()
     }
   }
 
@@ -452,9 +434,10 @@
 
   // 页面加载时获取批次详情
   onMounted(async () => {
-    inboundBatchStore.fetchBatchById(batchId.value)
-    inboundBatchStore.fetchBatchChannels(batchId.value)
-    // 加载包裹数据
+    // 先加载批次数据和渠道进度
+    await inboundBatchStore.fetchBatchById(batchId.value)
+    await inboundBatchStore.fetchBatchChannels(batchId.value)
+    // 再加载包裹数据
     await loadInitialData()
 
     // 添加滚动事件监听
@@ -466,7 +449,7 @@
     const scanSuccess = route.query.scanSuccess === 'true'
     const scanMessage = route.query.scanMessage as string
     if (scanMessage) {
-      handleScanResult(scanSuccess, scanMessage)
+      await handleScanResult(scanSuccess, scanMessage)
     }
   })
 

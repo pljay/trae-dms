@@ -9,7 +9,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:hardwareAccelerated="true">
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true"
+        android:allowNativeHeapPointerTagging="false">
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
@@ -47,13 +49,19 @@
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <!-- To get access to vibration. -->
     <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Android 15 新增 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.USE_TEXT_TO_SPEECH" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
         <!-- Android 14 新增的权限 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    
+    <!-- 音频焦点权限 -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
 
     
